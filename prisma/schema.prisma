@@ -1,0 +1,486 @@
+// Passion Project Platform - Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum ProjectStatus {
+  IDEATION
+  PLANNING
+  IN_PROGRESS
+  PAUSED
+  COMPLETED
+  ABANDONED
+}
+
+enum ProjectCategory {
+  CREATIVE
+  SOCIAL_IMPACT
+  ENTREPRENEURIAL
+  RESEARCH
+  TECHNICAL
+  LEADERSHIP
+}
+
+enum MilestoneStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum AchievementType {
+  BADGE
+  LEVEL_UP
+  STREAK_MILESTONE
+  PROJECT_MILESTONE
+  SPECIAL
+}
+
+enum NotificationType {
+  STREAK_WARNING
+  MILESTONE_COMPLETE
+  ACHIEVEMENT_UNLOCKED
+  WEEKLY_SUMMARY
+  PROJECT_UPDATE
+}
+
+// ============================================================================
+// USER & PROFILE
+// ============================================================================
+
+model User {
+  id       String   @id @default(cuid())
+  clerkId  String   @unique
+  email    String   @unique
+  name     String
+  avatar   String?
+
+  // Gamification
+  xp              Int      @default(0)
+  level           Int      @default(1)
+  currentStreak   Int      @default(0)
+  longestStreak   Int      @default(0)
+  lastActiveAt    DateTime @default(now())
+
+  // Preferences
+  emailOptIn      Boolean  @default(true)
+  pushOptIn       Boolean  @default(true)
+  publicProfile   Boolean  @default(false)
+
+  // Relations
+  profile         UserProfile?
+  activities      ActivityResponse[]
+  projects        Project[]
+  projectIdeas    ProjectIdea[]
+  achievements    Achievement[]
+  notifications   Notification[]
+  conversationHistory ConversationMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clerkId])
+  @@index([email])
+  @@index([lastActiveAt])
+}
+
+model UserProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Quick Start Survey Data
+  gradeLevel        Int
+  collegeTimeline   String  // "applying-2025", "2026", etc
+  timeCommitment    Int     // hours per week
+  currentActivities String[]
+  favoriteSubjects  String[] // ranked array
+  skillsConfidence  Json    // {coding: 7, writing: 9, ...}
+  workStyle         String  // "solo", "small-team", "large-team"
+  impactPreference  String  // "friends", "school", "community", "world"
+  challengeLevel    Int     // 1-10 scale
+  learningStyle     String? // derived from quiz
+
+  // Deep Dive Module Data
+  topValues         String[] // from card sort
+  strengthsRadar    Json     // {creativity: 8, leadership: 6, ...}
+  interestClusters  Json?    // AI-generated themes
+  problemFocus      String[] // what they care about
+  dreamCareer       String?  @db.Text
+
+  // Discovery Activity Results
+  projectDNA        Json?    // complete DNA structure
+  approachStyle     String?  // "build-first", "research-first", etc
+  activityChoices   Json?    // all choices made during quest
+
+  // Progress Tracking
+  completionPercent Int      @default(0)
+  completedAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ============================================================================
+// DISCOVERY ACTIVITIES
+// ============================================================================
+
+model ActivityResponse {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  activityId String   // "quest-act-1", "values-sort", "strengths-scenarios"
+  activityType String // "quest", "survey", "game"
+
+  // Response Data
+  choices    Json     // all choices/answers
+  results    Json?    // AI-analyzed results
+  timeSpent  Int      // seconds
+  completed  Boolean  @default(false)
+
+  // Metadata
+  deviceType String?  // "mobile", "desktop", "tablet"
+
+  createdAt  DateTime @default(now())
+  completedAt DateTime?
+
+  @@unique([userId, activityId])
+  @@index([userId])
+  @@index([activityId])
+}
+
+// ============================================================================
+// PROJECTS
+// ============================================================================
+
+model Project {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Basic Info
+  title       String
+  description String   @db.Text
+  category    ProjectCategory
+  status      ProjectStatus    @default(IDEATION)
+
+  // AI Context
+  ideaSourceId    String?  // FK to ProjectIdea
+  feasibilityScore Int?
+  matchingPercent  Int?
+  aiGeneratedSummary String? @db.Text
+
+  // Planning Data
+  charter     Json?    // mission, goals, success criteria
+  resources   Json?    // materials, support team, permissions
+  skillGaps   Json?    // skills to develop
+
+  // Tracking Metrics
+  healthScore    Int      @default(50)
+  hoursLogged    Int      @default(0)
+  currentStreak  Int      @default(0)
+  lastWorkedAt   DateTime?
+
+  // Dates
+  startedAt          DateTime?
+  targetCompletionAt DateTime?
+  completedAt        DateTime?
+  archivedAt         DateTime?
+
+  // Portfolio
+  portfolioPublished Boolean  @default(false)
+  portfolioUrl       String?  @unique
+  showcaseInGallery  Boolean  @default(false)
+
+  // Relations
+  milestones  Milestone[]
+  tasks       Task[]
+  checkIns    ProjectCheckIn[]
+  documents   ProjectDocument[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([showcaseInGallery])
+}
+
+model ProjectIdea {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Idea Details
+  title              String
+  description        String  @db.Text
+  category           ProjectCategory
+  feasibilityScore   Int
+  matchingPercent    Int
+  timeEstimate       String
+  uniqueness         String  // "HIGH", "MEDIUM", "LOW"
+  impactMetrics      String[]
+
+  // Context
+  generationPrompt   String  @db.Text
+  profileSnapshot    Json    // snapshot of profile at time of generation
+  activitySnapshot   Json?   // quest choices that led to this idea
+
+  // Status
+  status       String  @default("suggested") // "suggested", "saved", "started", "rejected"
+  selectedAt   DateTime?
+  rejectedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Milestone {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  orderIndex  Int
+  title       String
+  description String?  @db.Text
+
+  status      MilestoneStatus @default(NOT_STARTED)
+  targetDate  DateTime?
+  completedAt DateTime?
+
+  // Deliverables
+  expectedDeliverables String?
+  actualDeliverables   String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+}
+
+model Task {
+  id            String   @id @default(cuid())
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  milestoneId   String?  // optional grouping
+
+  title         String
+  description   String?  @db.Text
+  estimatedHours Int?
+
+  priority      String   @default("medium") // "low", "medium", "high"
+  completed     Boolean  @default(false)
+  completedAt   DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([completed])
+}
+
+model ProjectCheckIn {
+  id              String   @id @default(cuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Reflection
+  accomplishments String   @db.Text
+  challenges      String?  @db.Text
+  learnings       String?  @db.Text
+  nextSteps       String?  @db.Text
+
+  // Metrics
+  hoursLogged     Int?
+  moodRating      Int?     // 1-5 scale
+  energyLevel     Int?     // 1-5 scale
+
+  // AI Analysis
+  sentiment       String?  // "positive", "neutral", "negative"
+  aiSuggestions   String?  @db.Text
+
+  createdAt       DateTime @default(now())
+
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+model ProjectDocument {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  type        String   // "photo", "video", "pdf", "link", "other"
+  title       String
+  url         String
+  thumbnailUrl String?
+
+  fileSize    Int?
+  mimeType    String?
+
+  description String?  @db.Text
+  tags        String[]
+
+  createdAt   DateTime @default(now())
+
+  @@index([projectId])
+  @@index([type])
+}
+
+// ============================================================================
+// GAMIFICATION
+// ============================================================================
+
+model Achievement {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  achievementType AchievementType
+  achievementId   String   // "first-project", "level-5", "30-day-streak"
+
+  name            String
+  description     String
+  iconUrl         String
+  xpAwarded       Int
+
+  // Context
+  metadata        Json?    // related project, milestone, etc
+
+  unlockedAt DateTime @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementType])
+}
+
+model Leaderboard {
+  id          String   @id @default(cuid())
+  userId      String
+
+  // Snapshot for period
+  period      String   // "2024-W47", "2024-11"
+
+  xpEarned    Int
+  projectsCompleted Int
+  streakDays  Int
+
+  rank        Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, period])
+  @@index([period, rank])
+}
+
+// ============================================================================
+// AI CONVERSATIONS
+// ============================================================================
+
+model ConversationMessage {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  sessionId   String   // group messages by session
+  role        String   // "user", "assistant"
+  content     String   @db.Text
+
+  // Context
+  projectId   String?  // if discussing a project
+  activityId  String?  // if during an activity
+
+  // AI Metadata
+  model       String?  // "gpt-4o", "claude-3-opus"
+  tokens      Int?
+  latencyMs   Int?
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId, sessionId])
+  @@index([sessionId])
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        NotificationType
+  title       String
+  message     String   @db.Text
+
+  actionUrl   String?
+  metadata    Json?
+
+  read        Boolean  @default(false)
+  readAt      DateTime?
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// ANALYTICS & TRACKING
+// ============================================================================
+
+model UserSession {
+  id          String   @id @default(cuid())
+  userId      String
+
+  // Session Info
+  sessionId   String   @unique
+  ipAddress   String?
+  userAgent   String?
+  deviceType  String?  // "mobile", "desktop", "tablet"
+
+  // Activity
+  pagesViewed Int      @default(0)
+  duration    Int?     // seconds
+
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+
+  @@index([userId])
+  @@index([startedAt])
+}
+
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  enabled     Boolean  @default(false)
+
+  // Rollout
+  rolloutPercent Int   @default(0)
+  allowedUsers   String[] // user IDs for testing
+
+  description String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name, enabled])
+}
