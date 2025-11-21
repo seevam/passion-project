@@ -60,46 +60,7 @@
   }
 }
 
-/* Duolingo-inspired button styles */
-@layer components {
-  .btn-duo {
-    @apply relative rounded-2xl px-6 py-3 font-bold text-white shadow-duo transition-all hover:shadow-duo-hover active:translate-y-1 active:shadow-none;
-  }
-
-  .btn-duo-primary {
-    @apply btn-duo bg-primary-500 hover:bg-primary-600;
-  }
-
-  .btn-duo-secondary {
-    @apply btn-duo bg-secondary-500 hover:bg-secondary-600;
-  }
-
-  .btn-duo-accent {
-    @apply btn-duo bg-accent-500 hover:bg-accent-600;
-  }
-
-  .card-duo {
-    @apply rounded-2xl border-2 border-gray-200 bg-white p-6 shadow-duo transition-all hover:shadow-duo-hover;
-  }
-
-  /* Progress bar styles */
-  .progress-duo {
-    @apply h-4 w-full overflow-hidden rounded-full bg-gray-200;
-  }
-
-  .progress-duo-fill {
-    @apply h-full rounded-full bg-gradient-to-r from-primary-500 to-primary-400 transition-all duration-500;
-  }
-
-  /* XP and gamification styles */
-  .xp-badge {
-    @apply inline-flex items-center rounded-full bg-accent-100 px-3 py-1 text-sm font-semibold text-accent-700;
-  }
-
-  .streak-flame {
-    @apply inline-flex items-center space-x-1 rounded-full bg-gradient-to-r from-orange-400 to-red-500 px-3 py-1 text-white shadow-lg;
-  }
-}
+/* Custom utility classes removed - using React components instead */
 
 /* Custom animations */
 @keyframes float {
