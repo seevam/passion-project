@@ -6,16 +6,17 @@ import { ProjectCheckInSchema } from '@/lib/validations/project';
 // POST /api/projects/[id]/check-ins - Create check-in
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireAuth();
     const body = await req.json();
+    const { id } = await params;
 
     // Verify project ownership
     const project = await db.project.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.id,
       },
     });
@@ -33,7 +34,7 @@ export async function POST(
     // Create check-in
     const checkIn = await db.projectCheckIn.create({
       data: {
-        projectId: params.id,
+        projectId: id,
         accomplishments: validated.accomplishments,
         challenges: validated.challenges || null,
         learnings: validated.learnings || null,
@@ -47,7 +48,7 @@ export async function POST(
     // Update project stats
     const hoursToAdd = validated.hoursLogged || 0;
     await db.project.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         hoursLogged: { increment: hoursToAdd },
         lastWorkedAt: new Date(),

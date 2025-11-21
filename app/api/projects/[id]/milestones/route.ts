@@ -6,16 +6,17 @@ import { CreateMilestoneSchema } from '@/lib/validations/project';
 // POST /api/projects/[id]/milestones - Create milestone
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireAuth();
     const body = await req.json();
+    const { id } = await params;
 
     // Verify project ownership
     const project = await db.project.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.id,
       },
     });
@@ -33,7 +34,7 @@ export async function POST(
     // Create milestone
     const milestone = await db.milestone.create({
       data: {
-        projectId: params.id,
+        projectId: id,
         title: validated.title,
         description: validated.description || null,
         targetDate: validated.targetDate ? new Date(validated.targetDate) : null,

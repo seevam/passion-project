@@ -5,14 +5,15 @@ import { db } from '@/lib/db';
 // GET /api/ideas/[id] - Get specific idea
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireAuth();
+    const { id } = await params;
 
     const idea = await db.projectIdea.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.id,
       },
     });
@@ -37,16 +38,17 @@ export async function GET(
 // PATCH /api/ideas/[id] - Update idea status (save, reject, select)
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireAuth();
     const body = await req.json();
     const { status } = body; // 'saved', 'rejected', 'started'
+    const { id } = await params;
 
     const idea = await db.projectIdea.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.id,
       },
     });
@@ -56,7 +58,7 @@ export async function PATCH(
     }
 
     const updatedIdea = await db.projectIdea.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status,
         ...(status === 'started' && { selectedAt: new Date() }),
@@ -80,14 +82,15 @@ export async function PATCH(
 // DELETE /api/ideas/[id] - Delete an idea
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireAuth();
+    const { id } = await params;
 
     const idea = await db.projectIdea.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.id,
       },
     });
@@ -97,7 +100,7 @@ export async function DELETE(
     }
 
     await db.projectIdea.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({

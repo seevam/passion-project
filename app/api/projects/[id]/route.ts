@@ -6,14 +6,15 @@ import { UpdateProjectSchema } from '@/lib/validations/project';
 // GET /api/projects/[id] - Get project details
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireAuth();
+    const { id } = await params;
 
     const project = await db.project.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.id,
       },
       include: {
@@ -56,16 +57,17 @@ export async function GET(
 // PATCH /api/projects/[id] - Update project
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireAuth();
     const body = await req.json();
+    const { id } = await params;
 
     // Verify ownership
     const existing = await db.project.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.id,
       },
     });
@@ -82,7 +84,7 @@ export async function PATCH(
 
     // Update project
     const project = await db.project.update({
-      where: { id: params.id },
+      where: { id },
       data: validated,
     });
 
@@ -102,15 +104,16 @@ export async function PATCH(
 // DELETE /api/projects/[id] - Archive project
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireAuth();
+    const { id } = await params;
 
     // Verify ownership
     const existing = await db.project.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.id,
       },
     });
@@ -124,7 +127,7 @@ export async function DELETE(
 
     // Archive instead of delete
     const project = await db.project.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         archivedAt: new Date(),
         status: 'ABANDONED',
