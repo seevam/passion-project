@@ -25,7 +25,7 @@ const QuickStartSchema = z.object({
   timeCommitment: z.number().min(2).max(20),
   currentActivities: z.array(z.string()),
   favoriteSubjects: z.array(z.string()),
-  skillsConfidence: z.record(z.number().min(1).max(10)),
+  skillsConfidence: z.record(z.string(), z.number().min(1).max(10)),
   workStyle: z.enum(['solo', 'small-team', 'large-team']),
   impactPreference: z.enum(['friends', 'school', 'community', 'world']),
   challengeLevel: z.number().min(1).max(10),
