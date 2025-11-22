@@ -15,7 +15,10 @@ export default clerkMiddleware(async (auth, request) => {
   }
 
   // All other routes - require authentication
-  (await auth()).protect();
+  const authObj = await auth();
+  if (!authObj.userId) {
+    return authObj.redirectToSignIn();
+  }
 });
 
 export const config = {
