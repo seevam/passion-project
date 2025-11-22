@@ -1,6 +1,9 @@
 import { db } from '@/lib/db';
 import Link from 'next/link';
 
+// Force dynamic rendering - don't prerender at build time
+export const dynamic = 'force-dynamic';
+
 export default async function GalleryPage() {
   // Get public showcase projects
   const projects = await db.project.findMany({
