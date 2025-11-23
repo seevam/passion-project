@@ -20,6 +20,7 @@ import { Progress } from '@/components/ui/progress';
 import { Sparkles, ArrowRight, ArrowLeft } from 'lucide-react';
 
 const QuickStartSchema = z.object({
+  bio: z.string().optional(),
   gradeLevel: z.number().min(6).max(12),
   collegeTimeline: z.string(),
   timeCommitment: z.number().min(2).max(20),
@@ -173,10 +174,24 @@ export default function QuickStartPage() {
           {step === 1 && (
             <div className="space-y-6">
               <div>
-                <CardTitle className="mb-6">Basic Information</CardTitle>
+                <CardTitle className="mb-6">📋 Basic Information</CardTitle>
               </div>
 
               <div className="space-y-4">
+                <div>
+                  <Label htmlFor="bio">Tell us a bit about yourself</Label>
+                  <Input
+                    id="bio"
+                    type="text"
+                    value={formData.bio || ''}
+                    onChange={(e) =>
+                      updateFormData({ bio: e.target.value })
+                    }
+                    placeholder="Share a bit about yourself..."
+                    className="mt-2"
+                  />
+                </div>
+
                 <div>
                   <Label htmlFor="gradeLevel">What grade are you in?</Label>
                   <Select
