@@ -1,3 +1,6 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -5,21 +8,64 @@ import { Progress } from '@/components/ui/progress';
 import {
   Lightbulb,
   FolderKanban,
-  Target,
-  TrendingUp,
   ArrowRight,
   Sparkles,
+  Star,
+  Flame,
 } from 'lucide-react';
 import Link from 'next/link';
 
+interface DashboardStats {
+  profileCompletion: number;
+  activeProjects: number;
+  totalIdeas: number;
+  xp: number;
+  level: number;
+  currentStreak: number;
+  recentProjects: Array<{
+    id: string;
+    title: string;
+    status: string;
+    lastWorkedAt: string | null;
+  }>;
+}
+
 export default function DashboardPage() {
-  // Mock data - will be replaced with real database queries
-  const stats = {
-    profileCompletion: 60,
-    activeProjects: 2,
-    totalIdeas: 8,
-    xpThisWeek: 350,
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      const response = await fetch('/api/dashboard');
+      const data = await response.json();
+      if (data.success) {
+        setStats(data.stats);
+      }
+    } catch (error) {
+      console.error('Error loading dashboard:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <Sparkles className="mx-auto h-12 w-12 animate-pulse text-primary-500" />
+          <p className="mt-4 text-lg text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return <div>Failed to load dashboard</div>;
+  }
 
   return (
     <div className="space-y-8">
@@ -68,16 +114,16 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Profile Progress
+              Your Level
             </CardTitle>
-            <Target className="h-4 w-4 text-secondary-500" />
+            <Star className="h-4 w-4 text-primary-500" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              {stats.profileCompletion}%
+              Level {stats.level}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Keep building!
+              {stats.xp} XP total
             </p>
           </CardContent>
         </Card>
@@ -85,14 +131,17 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              XP This Week
+              Current Streak
             </CardTitle>
-            <TrendingUp className="h-4 w-4 text-primary-500" />
+            <Flame className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">+{stats.xpThisWeek}</div>
+            <div className="flex items-baseline space-x-1">
+              <span className="text-3xl font-bold">{stats.currentStreak}</span>
+              <span className="text-xl">🔥</span>
+            </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Great progress!
+              Days in a row
             </p>
           </CardContent>
         </Card>
@@ -117,7 +166,7 @@ export default function DashboardPage() {
               <span className="text-sm font-medium text-gray-700">
                 {stats.profileCompletion}% Complete
               </span>
-              <Link href="/profile">
+              <Link href="/profile/quick-start">
                 <Button variant="default">
                   Continue Setup
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -184,27 +233,52 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent Activity */}
+      {/* Recent Projects */}
       <div>
         <h2 className="mb-4 text-2xl font-bold text-gray-900">
-          Recent Activity
+          Recent Projects
         </h2>
-        <Card>
-          <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">
-              No recent activity yet. Start by exploring project ideas or
-              creating your first project!
-            </p>
-            <div className="mt-4 flex justify-center space-x-4">
-              <Link href="/ideas">
-                <Button variant="default">Discover Ideas</Button>
+        {stats.recentProjects.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center">
+              <p className="text-muted-foreground">
+                No projects yet. Start by exploring project ideas or
+                creating your first project!
+              </p>
+              <div className="mt-4 flex justify-center space-x-4">
+                <Link href="/ideas">
+                  <Button variant="default">Discover Ideas</Button>
+                </Link>
+                <Link href="/projects/new">
+                  <Button variant="outline">Create Project</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {stats.recentProjects.map((project) => (
+              <Link key={project.id} href={`/projects/${project.id}`}>
+                <Card className="transition-all hover:shadow-duo-hover">
+                  <CardHeader>
+                    <CardTitle className="line-clamp-2">{project.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Badge className="mb-2">
+                      {project.status.replace('_', ' ')}
+                    </Badge>
+                    {project.lastWorkedAt && (
+                      <p className="text-xs text-muted-foreground">
+                        Last worked:{' '}
+                        {new Date(project.lastWorkedAt).toLocaleDateString()}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
               </Link>
-              <Link href="/projects/new">
-                <Button variant="outline">Create Project</Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
