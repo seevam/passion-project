@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Sparkles, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Sparkles, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 const QuickStartSchema = z.object({
   gradeLevel: z.number().min(6).max(12),
@@ -147,50 +147,84 @@ export default function QuickStartPage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-8 py-4">
       {/* Header */}
-      <div className="text-center">
-        <div className="mb-4 inline-flex items-center rounded-full bg-primary-100 px-4 py-2">
-          <Sparkles className="mr-2 h-4 w-4 text-primary-600" />
-          <span className="text-sm font-semibold text-primary-700">
+      <div className="text-center animate-slide-down">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary-500 to-green-400 px-6 py-3 shadow-duo">
+          <Sparkles className="h-5 w-5 text-white animate-pulse" />
+          <span className="text-base font-bold text-white">
             Step {step} of {totalSteps}
           </span>
         </div>
-        <h1 className="text-4xl font-bold text-gray-900">
-          Let's Get to Know You
+        <h1 className="text-5xl font-black text-gray-900 mb-3">
+          Let&apos;s Get to Know You 👋
         </h1>
-        <p className="mt-2 text-lg text-muted-foreground">
+        <p className="text-xl text-gray-600 font-semibold">
           This helps us personalize your experience
         </p>
       </div>
 
-      {/* Progress Bar */}
-      <Progress value={progress} className="h-3" />
+      {/* Progress Bar with Step Indicators */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          {[1, 2, 3, 4].map((stepNum) => (
+            <div key={stepNum} className="flex items-center">
+              <div
+                className={`flex h-12 w-12 items-center justify-center rounded-full font-bold transition-all duration-300 ${
+                  stepNum < step
+                    ? 'bg-primary-500 text-white shadow-duo scale-110'
+                    : stepNum === step
+                      ? 'bg-primary-500 text-white shadow-duo-hover scale-125 animate-pulse-glow'
+                      : 'bg-gray-200 text-gray-500'
+                }`}
+              >
+                {stepNum < step ? (
+                  <CheckCircle2 className="h-6 w-6" />
+                ) : (
+                  stepNum
+                )}
+              </div>
+              {stepNum < 4 && (
+                <div
+                  className={`h-2 w-16 sm:w-24 mx-2 rounded-full transition-all duration-300 ${
+                    stepNum < step ? 'bg-primary-500' : 'bg-gray-200'
+                  }`}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Form Steps */}
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="border-4 border-gray-100 shadow-duo hover:shadow-duo-hover transition-all duration-300 animate-scale-in">
+        <CardContent className="pt-8 px-8 pb-8">
           {step === 1 && (
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div>
-                <CardTitle className="mb-6">Basic Information</CardTitle>
+                <CardTitle className="text-3xl font-black text-gray-900 mb-2">
+                  📚 Basic Information
+                </CardTitle>
+                <p className="text-gray-600">Tell us a bit about yourself</p>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="gradeLevel">What grade are you in?</Label>
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="gradeLevel" className="text-lg font-bold text-gray-800">
+                    What grade are you in?
+                  </Label>
                   <Select
                     value={formData.gradeLevel?.toString()}
                     onValueChange={(value) =>
                       updateFormData({ gradeLevel: parseInt(value) })
                     }
                   >
-                    <SelectTrigger className="mt-2">
+                    <SelectTrigger className="h-14 text-base font-semibold border-2 border-gray-300 hover:border-primary-500 transition-colors">
                       <SelectValue placeholder="Select your grade" />
                     </SelectTrigger>
                     <SelectContent>
                       {[9, 10, 11, 12].map((grade) => (
-                        <SelectItem key={grade} value={grade.toString()}>
+                        <SelectItem key={grade} value={grade.toString()} className="text-base font-semibold">
                           Grade {grade}
                         </SelectItem>
                       ))}
@@ -198,8 +232,8 @@ export default function QuickStartPage() {
                   </Select>
                 </div>
 
-                <div>
-                  <Label htmlFor="collegeTimeline">
+                <div className="space-y-3">
+                  <Label htmlFor="collegeTimeline" className="text-lg font-bold text-gray-800">
                     When are you applying to college?
                   </Label>
                   <Select
@@ -208,22 +242,21 @@ export default function QuickStartPage() {
                       updateFormData({ collegeTimeline: value })
                     }
                   >
-                    <SelectTrigger className="mt-2">
+                    <SelectTrigger className="h-14 text-base font-semibold border-2 border-gray-300 hover:border-primary-500 transition-colors">
                       <SelectValue placeholder="Select timeline" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="applying-2025">Fall 2025</SelectItem>
-                      <SelectItem value="applying-2026">Fall 2026</SelectItem>
-                      <SelectItem value="applying-2027">Fall 2027</SelectItem>
-                      <SelectItem value="applying-2028">Fall 2028</SelectItem>
+                      <SelectItem value="applying-2025" className="text-base font-semibold">Fall 2025</SelectItem>
+                      <SelectItem value="applying-2026" className="text-base font-semibold">Fall 2026</SelectItem>
+                      <SelectItem value="applying-2027" className="text-base font-semibold">Fall 2027</SelectItem>
+                      <SelectItem value="applying-2028" className="text-base font-semibold">Fall 2028</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div>
-                  <Label htmlFor="timeCommitment">
-                    How many hours per week can you dedicate to a passion
-                    project?
+                <div className="space-y-3">
+                  <Label htmlFor="timeCommitment" className="text-lg font-bold text-gray-800">
+                    How many hours per week can you dedicate to a passion project?
                   </Label>
                   <Input
                     id="timeCommitment"
@@ -237,26 +270,31 @@ export default function QuickStartPage() {
                       })
                     }
                     placeholder="e.g., 5"
-                    className="mt-2"
+                    className="h-14 text-base font-semibold border-2 border-gray-300 hover:border-primary-500 focus:border-primary-500 transition-colors"
                   />
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Be realistic - quality over quantity!
-                  </p>
+                  <div className="flex items-center gap-2 bg-accent-50 border-2 border-accent-200 rounded-xl p-3">
+                    <span className="text-2xl">💡</span>
+                    <p className="text-sm font-semibold text-accent-800">
+                      Be realistic - quality over quantity!
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
           {step === 2 && (
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div>
-                <CardTitle className="mb-2">Your Activities</CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <CardTitle className="text-3xl font-black text-gray-900 mb-2">
+                  🎯 Your Activities
+                </CardTitle>
+                <p className="text-lg text-gray-600 font-semibold">
                   Select all that apply
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {COMMON_ACTIVITIES.map((activity) => {
                   const isSelected =
                     formData.currentActivities?.includes(activity);
@@ -264,24 +302,29 @@ export default function QuickStartPage() {
                     <button
                       key={activity}
                       onClick={() => toggleActivity(activity)}
-                      className={`rounded-xl border-2 px-4 py-3 text-left font-semibold transition-all ${
+                      className={`group relative rounded-2xl border-4 px-6 py-5 text-left font-bold text-lg transition-all duration-200 ${
                         isSelected
-                          ? 'border-primary-500 bg-primary-50 text-primary-700'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-primary-500 bg-primary-500 text-white shadow-duo scale-105'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-primary-400 hover:bg-primary-50 hover:scale-105 active:scale-95'
                       }`}
                     >
-                      {activity}
+                      <span className="flex items-center gap-2">
+                        {isSelected && <CheckCircle2 className="h-5 w-5" />}
+                        {activity}
+                      </span>
                     </button>
                   );
                 })}
               </div>
 
-              <div>
-                <Label htmlFor="customActivity">Other activities?</Label>
+              <div className="space-y-3">
+                <Label htmlFor="customActivity" className="text-lg font-bold text-gray-800">
+                  Other activities?
+                </Label>
                 <Input
                   id="customActivity"
                   placeholder="Type and press Enter"
-                  className="mt-2"
+                  className="h-14 text-base font-semibold border-2 border-gray-300 hover:border-primary-500 focus:border-primary-500 transition-colors"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && e.currentTarget.value) {
                       toggleActivity(e.currentTarget.value);
@@ -294,15 +337,23 @@ export default function QuickStartPage() {
           )}
 
           {step === 3 && (
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div>
-                <CardTitle className="mb-2">Favorite Subjects</CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <CardTitle className="text-3xl font-black text-gray-900 mb-2">
+                  ❤️ Favorite Subjects
+                </CardTitle>
+                <p className="text-lg text-gray-600 font-semibold">
                   Select up to 5 subjects you enjoy most
                 </p>
+                <div className="mt-3 flex items-center gap-2 bg-secondary-50 border-2 border-secondary-200 rounded-xl p-3">
+                  <span className="text-xl">📊</span>
+                  <p className="text-sm font-semibold text-secondary-800">
+                    Selected: {formData.favoriteSubjects?.length || 0} / 5
+                  </p>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {SUBJECTS.map((subject) => {
                   const isSelected =
                     formData.favoriteSubjects?.includes(subject);
@@ -314,13 +365,16 @@ export default function QuickStartPage() {
                       key={subject}
                       onClick={() => toggleSubject(subject)}
                       disabled={isDisabled}
-                      className={`rounded-xl border-2 px-4 py-3 text-left font-semibold transition-all disabled:opacity-50 ${
+                      className={`rounded-2xl border-4 px-6 py-5 text-left font-bold text-lg transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed ${
                         isSelected
-                          ? 'border-primary-500 bg-primary-50 text-primary-700'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-secondary-500 bg-secondary-500 text-white shadow-duo scale-105'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-secondary-400 hover:bg-secondary-50 hover:scale-105 active:scale-95'
                       }`}
                     >
-                      {subject}
+                      <span className="flex items-center gap-2">
+                        {isSelected && <CheckCircle2 className="h-5 w-5" />}
+                        {subject}
+                      </span>
                     </button>
                   );
                 })}
@@ -329,21 +383,25 @@ export default function QuickStartPage() {
           )}
 
           {step === 4 && (
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div>
-                <CardTitle className="mb-2">Preferences</CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <CardTitle className="text-3xl font-black text-gray-900 mb-2">
+                  ⚙️ Preferences
+                </CardTitle>
+                <p className="text-lg text-gray-600 font-semibold">
                   Help us understand your work style
                 </p>
               </div>
 
-              <div>
-                <Label>How do you prefer to work?</Label>
-                <div className="mt-3 grid grid-cols-3 gap-3">
+              <div className="space-y-4">
+                <Label className="text-lg font-bold text-gray-800">
+                  How do you prefer to work?
+                </Label>
+                <div className="grid grid-cols-3 gap-3">
                   {[
-                    { value: 'solo', label: 'Solo' },
-                    { value: 'small-team', label: 'Small Team' },
-                    { value: 'large-team', label: 'Large Team' },
+                    { value: 'solo', label: '🧑 Solo', emoji: '🧑' },
+                    { value: 'small-team', label: '👥 Small Team', emoji: '👥' },
+                    { value: 'large-team', label: '👨‍👩‍👧‍👦 Large Team', emoji: '👨‍👩‍👧‍👦' },
                   ].map((option) => (
                     <button
                       key={option.value}
@@ -352,26 +410,31 @@ export default function QuickStartPage() {
                           workStyle: option.value as QuickStartData['workStyle'],
                         })
                       }
-                      className={`rounded-xl border-2 px-4 py-3 font-semibold transition-all ${
+                      className={`rounded-2xl border-4 px-4 py-5 font-bold text-base transition-all duration-200 ${
                         formData.workStyle === option.value
-                          ? 'border-primary-500 bg-primary-50 text-primary-700'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-accent-500 bg-accent-500 text-white shadow-duo scale-105'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-accent-400 hover:bg-accent-50 hover:scale-105 active:scale-95'
                       }`}
                     >
-                      {option.label}
+                      <div className="text-center">
+                        <div className="text-2xl mb-1">{option.emoji}</div>
+                        <div>{option.label.split(' ')[1]}</div>
+                      </div>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div>
-                <Label>Who do you want to impact?</Label>
-                <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="space-y-4">
+                <Label className="text-lg font-bold text-gray-800">
+                  Who do you want to impact?
+                </Label>
+                <div className="grid grid-cols-2 gap-3">
                   {[
-                    { value: 'friends', label: 'Friends & Family' },
-                    { value: 'school', label: 'My School' },
-                    { value: 'community', label: 'My Community' },
-                    { value: 'world', label: 'The World' },
+                    { value: 'friends', label: 'Friends & Family', emoji: '👨‍👩‍👧' },
+                    { value: 'school', label: 'My School', emoji: '🏫' },
+                    { value: 'community', label: 'My Community', emoji: '🏘️' },
+                    { value: 'world', label: 'The World', emoji: '🌍' },
                   ].map((option) => (
                     <button
                       key={option.value}
@@ -380,24 +443,36 @@ export default function QuickStartPage() {
                           impactPreference: option.value as QuickStartData['impactPreference'],
                         })
                       }
-                      className={`rounded-xl border-2 px-4 py-3 font-semibold transition-all ${
+                      className={`rounded-2xl border-4 px-6 py-5 text-left font-bold text-base transition-all duration-200 ${
                         formData.impactPreference === option.value
-                          ? 'border-primary-500 bg-primary-50 text-primary-700'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-primary-500 bg-primary-500 text-white shadow-duo scale-105'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-primary-400 hover:bg-primary-50 hover:scale-105 active:scale-95'
                       }`}
                     >
-                      {option.label}
+                      <span className="flex items-center gap-3">
+                        <span className="text-2xl">{option.emoji}</span>
+                        <span>{option.label}</span>
+                      </span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="challengeLevel">
+              <div className="space-y-4">
+                <Label htmlFor="challengeLevel" className="text-lg font-bold text-gray-800">
                   How challenging do you want your project to be?
                 </Label>
-                <div className="mt-3 flex items-center space-x-4">
-                  <span className="text-sm text-muted-foreground">Easy</span>
+                <div className="bg-gradient-to-r from-green-50 to-yellow-50 border-2 border-gray-300 rounded-2xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-base font-bold text-gray-700 flex items-center gap-2">
+                      <span className="text-2xl">😌</span>
+                      Easy
+                    </span>
+                    <span className="text-base font-bold text-gray-700 flex items-center gap-2">
+                      Challenging
+                      <span className="text-2xl">🔥</span>
+                    </span>
+                  </div>
                   <Input
                     id="challengeLevel"
                     type="range"
@@ -409,15 +484,19 @@ export default function QuickStartPage() {
                         challengeLevel: parseInt(e.target.value),
                       })
                     }
-                    className="flex-1"
+                    className="w-full h-3 cursor-pointer"
                   />
-                  <span className="text-sm text-muted-foreground">
-                    Challenging
-                  </span>
+                  <div className="mt-4 text-center">
+                    <div className="inline-flex items-center gap-2 bg-white border-2 border-primary-500 rounded-full px-6 py-3 shadow-duo">
+                      <span className="text-2xl">
+                        {(formData.challengeLevel || 5) <= 3 ? '😊' : (formData.challengeLevel || 5) <= 7 ? '💪' : '🚀'}
+                      </span>
+                      <span className="text-xl font-black text-primary-600">
+                        Level {formData.challengeLevel || 5}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <p className="mt-2 text-center text-sm font-semibold text-primary-600">
-                  Level: {formData.challengeLevel || 5}
-                </p>
               </div>
             </div>
           )}
@@ -425,14 +504,15 @@ export default function QuickStartPage() {
       </Card>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-2">
         <Button
           variant="outline"
           onClick={handleBack}
           disabled={step === 1}
-          className="w-32"
+          size="lg"
+          className="px-8 font-bold border-2 hover:scale-105 active:scale-95 transition-transform disabled:opacity-30"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-2 h-5 w-5" />
           Back
         </Button>
 
@@ -447,10 +527,11 @@ export default function QuickStartPage() {
               (step === 2 && !formData.currentActivities?.length) ||
               (step === 3 && !formData.favoriteSubjects?.length)
             }
-            className="w-32"
+            size="lg"
+            className="px-10 font-black text-base hover:scale-105 active:scale-95 transition-transform disabled:opacity-50"
           >
             Next
-            <ArrowRight className="ml-2 h-4 w-4" />
+            <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         ) : (
           <Button
@@ -461,10 +542,11 @@ export default function QuickStartPage() {
               !formData.impactPreference ||
               !formData.challengeLevel
             }
-            className="w-32"
+            size="lg"
+            className="px-10 font-black text-base hover:scale-105 active:scale-95 transition-transform disabled:opacity-50 animate-pulse-glow"
           >
-            {isSubmitting ? 'Saving...' : 'Continue'}
-            <ArrowRight className="ml-2 h-4 w-4" />
+            {isSubmitting ? 'Saving...' : 'Continue 🎉'}
+            {!isSubmitting && <ArrowRight className="ml-2 h-5 w-5" />}
           </Button>
         )}
       </div>
