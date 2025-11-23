@@ -86,8 +86,9 @@ export default function MentorPage() {
         }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        const data = await response.json();
         const assistantMessage: Message = {
           id: `msg_${Date.now()}_ai`,
           role: 'assistant',
@@ -96,14 +97,20 @@ export default function MentorPage() {
         };
         setMessages((prev) => [...prev, assistantMessage]);
       } else {
-        throw new Error('Failed to get response');
+        // Handle specific error cases
+        if (response.status === 401) {
+          throw new Error(data.error || 'Please sign in to use the AI mentor.');
+        }
+        throw new Error(data.error || 'Failed to get response');
       }
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage: Message = {
         id: `msg_${Date.now()}_error`,
         role: 'assistant',
-        content: "I'm sorry, I'm having trouble responding right now. Please try again in a moment.",
+        content: error instanceof Error
+          ? error.message
+          : "I'm sorry, I'm having trouble responding right now. Please try again in a moment.",
         createdAt: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMessage]);

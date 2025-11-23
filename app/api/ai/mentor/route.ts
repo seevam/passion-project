@@ -112,6 +112,15 @@ Guidelines:
     });
   } catch (error) {
     console.error('[AI_MENTOR]', error);
+
+    // Handle authentication errors specifically
+    if (error instanceof Error && error.message === 'Unauthorized') {
+      return NextResponse.json(
+        { error: 'Authentication required. Please sign in to use the AI mentor.' },
+        { status: 401 }
+      );
+    }
+
     return NextResponse.json(
       { error: 'Failed to get mentor response' },
       { status: 500 }
