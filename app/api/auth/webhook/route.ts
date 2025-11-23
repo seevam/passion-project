@@ -5,9 +5,12 @@ import { db } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
+  console.log('[WEBHOOK] Received request to /api/auth/webhook');
+
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
 
   if (!WEBHOOK_SECRET) {
+    console.error('[WEBHOOK] CLERK_WEBHOOK_SECRET not configured!');
     throw new Error('Please add CLERK_WEBHOOK_SECRET to .env');
   }
 
@@ -17,7 +20,14 @@ export async function POST(req: Request) {
   const svix_timestamp = headerPayload.get('svix-timestamp');
   const svix_signature = headerPayload.get('svix-signature');
 
+  console.log('[WEBHOOK] Headers:', {
+    hasSvixId: !!svix_id,
+    hasSvixTimestamp: !!svix_timestamp,
+    hasSvixSignature: !!svix_signature
+  });
+
   if (!svix_id || !svix_timestamp || !svix_signature) {
+    console.error('[WEBHOOK] Missing svix headers');
     return NextResponse.json(
       { error: 'Missing svix headers' },
       { status: 400 }
@@ -48,12 +58,14 @@ export async function POST(req: Request) {
 
   // Handle events
   const eventType = evt.type;
+  console.log('[WEBHOOK] Event type:', eventType);
 
   if (eventType === 'user.created') {
     const { id, email_addresses, first_name, last_name, image_url } = evt.data;
+    console.log('[WEBHOOK] Creating user:', { clerkId: id, email: email_addresses[0].email_address });
 
     try {
-      await db.user.create({
+      const user = await db.user.create({
         data: {
           clerkId: id,
           email: email_addresses[0].email_address,
@@ -62,9 +74,9 @@ export async function POST(req: Request) {
         },
       });
 
-      console.log(`User created: ${id}`);
+      console.log('[WEBHOOK] ✅ User created successfully:', { id: user.id, clerkId: id });
     } catch (error) {
-      console.error('Error creating user:', error);
+      console.error('[WEBHOOK] ❌ Error creating user:', error);
       return NextResponse.json(
         { error: 'Failed to create user' },
         { status: 500 }
