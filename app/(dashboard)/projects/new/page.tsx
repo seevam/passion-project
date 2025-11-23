@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,7 +25,7 @@ const CATEGORIES = [
   { value: 'LEADERSHIP', label: 'Leadership', icon: '👑' },
 ];
 
-export default function NewProjectPage() {
+function NewProjectForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const ideaId = searchParams?.get('ideaId');
@@ -322,5 +322,22 @@ export default function NewProjectPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function NewProjectPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="text-center">
+            <Sparkles className="mx-auto h-12 w-12 animate-pulse text-primary-500" />
+            <p className="mt-4 text-lg text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <NewProjectForm />
+    </Suspense>
   );
 }
