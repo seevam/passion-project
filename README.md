@@ -87,10 +87,13 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 1. Create a new application at [clerk.com](https://clerk.com)
 2. Configure sign-in/sign-up options (email, Google, etc.)
 3. Copy your API keys to `.env`
-4. Set up the webhook endpoint in Clerk dashboard:
-   - Endpoint: `https://your-domain.com/api/auth/webhook`
-   - Events: `user.created`, `user.updated`, `user.deleted`
-   - Copy the webhook secret to `.env`
+4. **IMPORTANT - Set up webhook for user creation:**
+   - Go to Clerk Dashboard → Webhooks
+   - Click "Add Endpoint"
+   - Endpoint URL: `https://your-domain.com/api/auth/webhook` (or `https://your-ngrok-url/api/auth/webhook` for local dev)
+   - Subscribe to events: `user.created`, `user.updated`, `user.deleted`
+   - Copy the **Signing Secret** (starts with `whsec_`) to `.env` as `CLERK_WEBHOOK_SECRET`
+   - **Without this webhook, users won't be created in your database!**
 
 ### Database Setup
 
