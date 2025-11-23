@@ -147,7 +147,7 @@ export default function QuickStartPage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="text-center">
         <div className="mb-4 inline-flex items-center rounded-full bg-primary-100 px-4 py-2">
@@ -156,10 +156,10 @@ export default function QuickStartPage() {
             Step {step} of {totalSteps}
           </span>
         </div>
-        <h1 className="text-4xl font-bold text-gray-900">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
           Let's Get to Know You
         </h1>
-        <p className="mt-2 text-lg text-muted-foreground">
+        <p className="mt-2 text-base sm:text-lg text-muted-foreground">
           This helps us personalize your experience
         </p>
       </div>
@@ -173,7 +173,7 @@ export default function QuickStartPage() {
           {step === 1 && (
             <div className="space-y-6">
               <div>
-                <CardTitle className="mb-6">Basic Information</CardTitle>
+                <CardTitle className="mb-6 text-lg sm:text-xl">Basic Information</CardTitle>
               </div>
 
               <div className="space-y-4">
@@ -237,7 +237,7 @@ export default function QuickStartPage() {
                       })
                     }
                     placeholder="e.g., 5"
-                    className="mt-2"
+                    className="mt-2 p-3 sm:p-4 text-sm sm:text-base"
                   />
                   <p className="mt-1 text-sm text-muted-foreground">
                     Be realistic - quality over quantity!
@@ -250,13 +250,13 @@ export default function QuickStartPage() {
           {step === 2 && (
             <div className="space-y-6">
               <div>
-                <CardTitle className="mb-2">Your Activities</CardTitle>
+                <CardTitle className="mb-2 text-lg sm:text-xl">Your Activities</CardTitle>
                 <p className="text-sm text-muted-foreground">
                   Select all that apply
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
                 {COMMON_ACTIVITIES.map((activity) => {
                   const isSelected =
                     formData.currentActivities?.includes(activity);
@@ -264,7 +264,7 @@ export default function QuickStartPage() {
                     <button
                       key={activity}
                       onClick={() => toggleActivity(activity)}
-                      className={`rounded-xl border-2 px-4 py-3 text-left font-semibold transition-all ${
+                      className={`min-h-[80px] sm:min-h-[100px] rounded-xl border-2 px-4 py-3 text-left font-semibold transition-all ${
                         isSelected
                           ? 'border-primary-500 bg-primary-50 text-primary-700'
                           : 'border-gray-200 hover:border-gray-300'
@@ -281,7 +281,7 @@ export default function QuickStartPage() {
                 <Input
                   id="customActivity"
                   placeholder="Type and press Enter"
-                  className="mt-2"
+                  className="mt-2 p-3 sm:p-4 text-sm sm:text-base"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && e.currentTarget.value) {
                       toggleActivity(e.currentTarget.value);
@@ -296,13 +296,13 @@ export default function QuickStartPage() {
           {step === 3 && (
             <div className="space-y-6">
               <div>
-                <CardTitle className="mb-2">Favorite Subjects</CardTitle>
+                <CardTitle className="mb-2 text-lg sm:text-xl">Favorite Subjects</CardTitle>
                 <p className="text-sm text-muted-foreground">
                   Select up to 5 subjects you enjoy most
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
                 {SUBJECTS.map((subject) => {
                   const isSelected =
                     formData.favoriteSubjects?.includes(subject);
@@ -314,7 +314,7 @@ export default function QuickStartPage() {
                       key={subject}
                       onClick={() => toggleSubject(subject)}
                       disabled={isDisabled}
-                      className={`rounded-xl border-2 px-4 py-3 text-left font-semibold transition-all disabled:opacity-50 ${
+                      className={`min-h-[80px] sm:min-h-[100px] rounded-xl border-2 px-4 py-3 text-left font-semibold transition-all disabled:opacity-50 ${
                         isSelected
                           ? 'border-primary-500 bg-primary-50 text-primary-700'
                           : 'border-gray-200 hover:border-gray-300'
@@ -331,7 +331,7 @@ export default function QuickStartPage() {
           {step === 4 && (
             <div className="space-y-6">
               <div>
-                <CardTitle className="mb-2">Preferences</CardTitle>
+                <CardTitle className="mb-2 text-lg sm:text-xl">Preferences</CardTitle>
                 <p className="text-sm text-muted-foreground">
                   Help us understand your work style
                 </p>
@@ -352,7 +352,7 @@ export default function QuickStartPage() {
                           workStyle: option.value as QuickStartData['workStyle'],
                         })
                       }
-                      className={`rounded-xl border-2 px-4 py-3 font-semibold transition-all ${
+                      className={`min-h-[80px] sm:min-h-[100px] rounded-xl border-2 px-4 py-3 font-semibold transition-all ${
                         formData.workStyle === option.value
                           ? 'border-primary-500 bg-primary-50 text-primary-700'
                           : 'border-gray-200 hover:border-gray-300'
@@ -366,7 +366,7 @@ export default function QuickStartPage() {
 
               <div>
                 <Label>Who do you want to impact?</Label>
-                <div className="mt-3 grid grid-cols-2 gap-3">
+                <div className="mt-3 grid grid-cols-2 gap-3 sm:gap-4">
                   {[
                     { value: 'friends', label: 'Friends & Family' },
                     { value: 'school', label: 'My School' },
@@ -380,7 +380,7 @@ export default function QuickStartPage() {
                           impactPreference: option.value as QuickStartData['impactPreference'],
                         })
                       }
-                      className={`rounded-xl border-2 px-4 py-3 font-semibold transition-all ${
+                      className={`min-h-[80px] sm:min-h-[100px] rounded-xl border-2 px-4 py-3 font-semibold transition-all ${
                         formData.impactPreference === option.value
                           ? 'border-primary-500 bg-primary-50 text-primary-700'
                           : 'border-gray-200 hover:border-gray-300'
@@ -425,12 +425,12 @@ export default function QuickStartPage() {
       </Card>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button
           variant="outline"
           onClick={handleBack}
           disabled={step === 1}
-          className="w-32"
+          className="min-h-[44px] w-full sm:w-32"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
@@ -447,7 +447,7 @@ export default function QuickStartPage() {
               (step === 2 && !formData.currentActivities?.length) ||
               (step === 3 && !formData.favoriteSubjects?.length)
             }
-            className="w-32"
+            className="min-h-[44px] w-full sm:w-auto text-base sm:text-lg"
           >
             Next
             <ArrowRight className="ml-2 h-4 w-4" />
@@ -461,7 +461,7 @@ export default function QuickStartPage() {
               !formData.impactPreference ||
               !formData.challengeLevel
             }
-            className="w-32"
+            className="min-h-[44px] w-full sm:w-auto text-base sm:text-lg"
           >
             {isSubmitting ? 'Saving...' : 'Continue'}
             <ArrowRight className="ml-2 h-4 w-4" />

@@ -127,14 +127,14 @@ export default function IdeasPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl">
             Discover Your Project
           </h1>
-          <p className="mt-2 text-lg text-muted-foreground">
+          <p className="mt-2 text-base text-muted-foreground sm:text-lg">
             AI-generated ideas personalized just for you
           </p>
         </div>
@@ -143,7 +143,7 @@ export default function IdeasPage() {
           onClick={generateNewIdeas}
           disabled={isGenerating}
           size="lg"
-          className="shadow-xl"
+          className="min-h-[44px] w-full shadow-xl sm:w-auto"
         >
           {isGenerating ? (
             <>
@@ -160,7 +160,7 @@ export default function IdeasPage() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex space-x-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:space-x-2">
         {[
           { id: 'all', label: 'New Ideas', count: ideas.filter(i => i.status === 'suggested').length },
           { id: 'saved', label: 'Saved', count: ideas.filter(i => i.status === 'saved').length },
@@ -169,7 +169,7 @@ export default function IdeasPage() {
           <button
             key={tab.id}
             onClick={() => setFilter(tab.id)}
-            className={`rounded-xl px-6 py-3 font-semibold transition-all ${
+            className={`min-h-[44px] rounded-xl px-4 py-3 font-semibold transition-all sm:px-6 ${
               filter === tab.id
                 ? 'bg-primary-500 text-white shadow-duo'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -183,12 +183,12 @@ export default function IdeasPage() {
       {/* Ideas Grid */}
       {filteredIdeas.length === 0 ? (
         <Card className="border-2 border-dashed">
-          <CardContent className="py-16 text-center">
-            <Lightbulb className="mx-auto h-16 w-16 text-muted-foreground opacity-50" />
-            <h3 className="mt-4 text-xl font-bold text-gray-900">
+          <CardContent className="py-12 text-center sm:py-16">
+            <Lightbulb className="mx-auto h-12 w-12 text-muted-foreground opacity-50 sm:h-16 sm:w-16" />
+            <h3 className="mt-4 text-lg font-bold text-gray-900 sm:text-xl">
               No {filter === 'all' ? 'new' : filter} ideas yet
             </h3>
-            <p className="mt-2 text-muted-foreground">
+            <p className="mt-2 text-sm text-muted-foreground sm:text-base">
               {filter === 'all'
                 ? 'Click "Generate New Ideas" to get started!'
                 : `You haven't ${filter} any ideas yet.`}
@@ -196,7 +196,7 @@ export default function IdeasPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
           {filteredIdeas.map((idea) => (
             <Card
               key={idea.id}
@@ -215,13 +215,13 @@ export default function IdeasPage() {
                         {idea.uniqueness} Uniqueness
                       </Badge>
                     </div>
-                    <CardTitle className="text-2xl">{idea.title}</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl lg:text-2xl">{idea.title}</CardTitle>
                   </div>
                 </div>
               </CardHeader>
 
               <CardContent className="space-y-4">
-                <p className="text-muted-foreground">{idea.description}</p>
+                <p className="text-sm text-muted-foreground sm:text-base">{idea.description}</p>
 
                 {/* Metrics */}
                 <div className="grid grid-cols-3 gap-4 rounded-xl bg-gray-50 p-4">
@@ -279,11 +279,11 @@ export default function IdeasPage() {
 
                 {/* Actions */}
                 {idea.status === 'suggested' && (
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="flex flex-col gap-2 sm:grid sm:grid-cols-3">
                     <Button
                       variant="outline"
                       onClick={() => updateIdeaStatus(idea.id, 'rejected')}
-                      className="w-full"
+                      className="min-h-[44px] w-full"
                     >
                       <X className="mr-1 h-4 w-4" />
                       Pass
@@ -291,7 +291,7 @@ export default function IdeasPage() {
                     <Button
                       variant="secondary"
                       onClick={() => updateIdeaStatus(idea.id, 'saved')}
-                      className="w-full"
+                      className="min-h-[44px] w-full"
                     >
                       <Heart className="mr-1 h-4 w-4" />
                       Save
@@ -299,7 +299,7 @@ export default function IdeasPage() {
                     <Button
                       variant="default"
                       onClick={() => updateIdeaStatus(idea.id, 'started')}
-                      className="w-full"
+                      className="min-h-[44px] w-full"
                     >
                       <Rocket className="mr-1 h-4 w-4" />
                       Start
@@ -311,7 +311,7 @@ export default function IdeasPage() {
                   <Button
                     variant="default"
                     onClick={() => updateIdeaStatus(idea.id, 'started')}
-                    className="w-full"
+                    className="min-h-[44px] w-full"
                   >
                     <Rocket className="mr-2 h-4 w-4" />
                     Start This Project

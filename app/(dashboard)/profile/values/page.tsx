@@ -61,7 +61,7 @@ export default function ValuesPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-4xl space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="text-center">
         <div className="mb-4 inline-flex items-center rounded-full bg-primary-100 px-4 py-2">
@@ -70,10 +70,10 @@ export default function ValuesPage() {
             Step 2 of 4
           </span>
         </div>
-        <h1 className="text-4xl font-bold text-gray-900">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
           What Matters Most to You?
         </h1>
-        <p className="mt-2 text-lg text-muted-foreground">
+        <p className="mt-2 text-base sm:text-lg text-muted-foreground">
           Choose your top 5 values that guide your decisions
         </p>
       </div>
@@ -85,7 +85,7 @@ export default function ValuesPage() {
       {selectedValues.length > 0 && (
         <Card className="border-2 border-primary-200 bg-primary-50/50">
           <CardHeader>
-            <CardTitle className="text-lg">
+            <CardTitle className="text-lg sm:text-xl">
               Your Top Values ({selectedValues.length}/5)
             </CardTitle>
           </CardHeader>
@@ -98,7 +98,7 @@ export default function ValuesPage() {
                     key={valueId}
                     className="flex items-center space-x-2 rounded-full bg-primary-500 px-4 py-2 text-white shadow-duo"
                   >
-                    <span className="text-xl">{value?.icon}</span>
+                    <span className="text-lg sm:text-xl">{value?.icon}</span>
                     <span className="font-semibold">
                       {index + 1}. {value?.label}
                     </span>
@@ -113,7 +113,7 @@ export default function ValuesPage() {
       {/* Values Grid */}
       <Card>
         <CardContent className="pt-6">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
             {VALUES.map((value) => {
               const isSelected = selectedValues.includes(value.id);
               const isDisabled = !isSelected && selectedValues.length >= 5;
@@ -124,7 +124,7 @@ export default function ValuesPage() {
                   key={value.id}
                   onClick={() => toggleValue(value.id)}
                   disabled={isDisabled}
-                  className={`relative rounded-2xl border-2 p-6 text-center transition-all disabled:opacity-30 ${
+                  className={`relative min-h-[80px] sm:min-h-[100px] rounded-2xl border-2 p-6 text-center transition-all disabled:opacity-30 ${
                     isSelected
                       ? 'border-primary-500 bg-primary-50 shadow-duo'
                       : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
@@ -135,7 +135,7 @@ export default function ValuesPage() {
                       {rank}
                     </div>
                   )}
-                  <div className="mb-3 text-4xl">{value.icon}</div>
+                  <div className="mb-3 text-2xl sm:text-3xl">{value.icon}</div>
                   <div
                     className={`text-sm font-semibold ${
                       isSelected ? 'text-primary-700' : 'text-gray-700'
@@ -151,11 +151,11 @@ export default function ValuesPage() {
       </Card>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button
           variant="outline"
           onClick={() => router.push('/profile/quick-start')}
-          className="w-32"
+          className="min-h-[44px] w-full sm:w-32"
         >
           Back
         </Button>
@@ -163,7 +163,7 @@ export default function ValuesPage() {
         <Button
           onClick={handleSubmit}
           disabled={selectedValues.length !== 5 || isSubmitting}
-          className="w-32"
+          className="min-h-[44px] w-full sm:w-auto text-base sm:text-lg"
         >
           {isSubmitting ? 'Saving...' : 'Continue'}
           <ArrowRight className="ml-2 h-4 w-4" />

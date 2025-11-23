@@ -86,18 +86,18 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900">My Projects</h1>
-          <p className="mt-2 text-lg text-muted-foreground">
+          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl">My Projects</h1>
+          <p className="mt-2 text-base text-muted-foreground sm:text-lg">
             Track and manage your passion projects
           </p>
         </div>
 
         <Link href="/projects/new">
-          <Button size="lg" className="shadow-xl">
+          <Button size="lg" className="min-h-[44px] w-full shadow-xl sm:w-auto">
             <Plus className="mr-2 h-5 w-5" />
             New Project
           </Button>
@@ -106,7 +106,7 @@ export default function ProjectsPage() {
 
       {/* Stats Overview */}
       {projects.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-muted-foreground">
@@ -164,17 +164,17 @@ export default function ProjectsPage() {
       {/* Projects Grid */}
       {projects.length === 0 ? (
         <Card className="border-2 border-dashed">
-          <CardContent className="py-16 text-center">
-            <FolderKanban className="mx-auto h-16 w-16 text-muted-foreground opacity-50" />
-            <h3 className="mt-4 text-xl font-bold text-gray-900">
+          <CardContent className="py-12 text-center sm:py-16">
+            <FolderKanban className="mx-auto h-12 w-12 text-muted-foreground opacity-50 sm:h-16 sm:w-16" />
+            <h3 className="mt-4 text-lg font-bold text-gray-900 sm:text-xl">
               No projects yet
             </h3>
-            <p className="mt-2 text-muted-foreground">
+            <p className="mt-2 text-sm text-muted-foreground sm:text-base">
               Create your first passion project to get started!
             </p>
             <div className="mt-6">
               <Link href="/projects/new">
-                <Button size="lg">
+                <Button size="lg" className="min-h-[44px]">
                   <Plus className="mr-2 h-5 w-5" />
                   Create Project
                 </Button>
@@ -183,7 +183,7 @@ export default function ProjectsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => {
             const completion = getCompletionPercent(project);
 
@@ -200,13 +200,13 @@ export default function ProjectsPage() {
                         {project.healthScore}%
                       </div>
                     </div>
-                    <CardTitle className="line-clamp-2">
+                    <CardTitle className="line-clamp-2 text-lg sm:text-xl">
                       {project.title}
                     </CardTitle>
                   </CardHeader>
 
                   <CardContent className="space-y-4">
-                    <p className="line-clamp-2 text-sm text-muted-foreground">
+                    <p className="line-clamp-2 text-sm text-muted-foreground sm:text-base">
                       {project.description}
                     </p>
 

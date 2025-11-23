@@ -22,19 +22,19 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Welcome Section */}
       <div>
-        <h1 className="text-4xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl">
           Welcome back! 👋
         </h1>
-        <p className="mt-2 text-lg text-muted-foreground">
+        <p className="mt-2 text-base text-muted-foreground sm:text-lg">
           Let's make progress on your passion projects today.
         </p>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -102,23 +102,23 @@ export default function DashboardPage() {
       {stats.profileCompletion < 100 && (
         <Card className="border-2 border-primary-200 bg-gradient-to-br from-primary-50 to-white">
           <CardHeader>
-            <CardTitle className="flex items-center text-xl">
+            <CardTitle className="flex items-center text-lg sm:text-xl">
               <Sparkles className="mr-2 h-5 w-5 text-primary-500" />
               Complete Your Profile
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground sm:text-base">
               Finish setting up your profile to unlock personalized project ideas
               and get the most out of ProjectLaunch!
             </p>
             <Progress value={stats.profileCompletion} className="h-3" />
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-sm font-medium text-gray-700">
                 {stats.profileCompletion}% Complete
               </span>
               <Link href="/profile">
-                <Button variant="default">
+                <Button variant="default" className="min-h-[44px] w-full sm:w-auto">
                   Continue Setup
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -130,10 +130,10 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       <div>
-        <h2 className="mb-4 text-2xl font-bold text-gray-900">
+        <h2 className="mb-4 text-xl font-bold text-gray-900 sm:text-2xl">
           Quick Actions
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Link href="/ideas">
             <Card className="cursor-pointer transition-all hover:shadow-duo-hover">
               <CardHeader>
@@ -186,21 +186,25 @@ export default function DashboardPage() {
 
       {/* Recent Activity */}
       <div>
-        <h2 className="mb-4 text-2xl font-bold text-gray-900">
+        <h2 className="mb-4 text-xl font-bold text-gray-900 sm:text-2xl">
           Recent Activity
         </h2>
         <Card>
           <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground sm:text-base">
               No recent activity yet. Start by exploring project ideas or
               creating your first project!
             </p>
-            <div className="mt-4 flex justify-center space-x-4">
+            <div className="mt-4 flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
               <Link href="/ideas">
-                <Button variant="default">Discover Ideas</Button>
+                <Button variant="default" className="min-h-[44px] w-full sm:w-auto">
+                  Discover Ideas
+                </Button>
               </Link>
               <Link href="/projects/new">
-                <Button variant="outline">Create Project</Button>
+                <Button variant="outline" className="min-h-[44px] w-full sm:w-auto">
+                  Create Project
+                </Button>
               </Link>
             </div>
           </CardContent>

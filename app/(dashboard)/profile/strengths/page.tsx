@@ -64,7 +64,7 @@ export default function StrengthsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-4xl space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="text-center">
         <div className="mb-4 inline-flex items-center rounded-full bg-primary-100 px-4 py-2">
@@ -73,10 +73,10 @@ export default function StrengthsPage() {
             Step 3 of 4
           </span>
         </div>
-        <h1 className="text-4xl font-bold text-gray-900">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
           Assess Your Strengths
         </h1>
-        <p className="mt-2 text-lg text-muted-foreground">
+        <p className="mt-2 text-base sm:text-lg text-muted-foreground">
           Rate yourself honestly - this helps us match you with the right projects
         </p>
       </div>
@@ -87,12 +87,12 @@ export default function StrengthsPage() {
       {/* Strengths Assessment */}
       <Card>
         <CardHeader>
-          <CardTitle>Rate Your Current Level</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Rate Your Current Level</CardTitle>
           <p className="text-sm text-muted-foreground">
             1 = Just starting • 10 = Very experienced
           </p>
         </CardHeader>
-        <CardContent className="space-y-8">
+        <CardContent className="space-y-6 sm:space-y-8">
           {STRENGTHS.map((strength) => {
             const value = strengths[strength.id] || 5;
             const level = getStrengthLevel(value);
@@ -101,8 +101,8 @@ export default function StrengthsPage() {
               <div key={strength.id} className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <span className="text-2xl">{strength.icon}</span>
-                    <Label className="text-base">{strength.label}</Label>
+                    <span className="text-2xl sm:text-3xl">{strength.icon}</span>
+                    <Label className="text-sm sm:text-base">{strength.label}</Label>
                   </div>
                   <div className="flex items-center space-x-3">
                     <span
@@ -146,7 +146,7 @@ export default function StrengthsPage() {
       {/* Top Strengths Summary */}
       <Card className="border-2 border-primary-200 bg-gradient-to-br from-primary-50 to-white">
         <CardHeader>
-          <CardTitle>Your Top Strengths</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Your Top Strengths</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -157,7 +157,7 @@ export default function StrengthsPage() {
                   key={strength.id}
                   className="rounded-xl border-2 border-primary-300 bg-white p-4 text-center"
                 >
-                  <div className="mb-2 text-3xl">{strength.icon}</div>
+                  <div className="mb-2 text-2xl sm:text-3xl">{strength.icon}</div>
                   <div className="text-xs font-semibold text-gray-700">
                     {strength.label}
                   </div>
@@ -171,11 +171,11 @@ export default function StrengthsPage() {
       </Card>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button
           variant="outline"
           onClick={() => router.push('/profile/values')}
-          className="w-32"
+          className="min-h-[44px] w-full sm:w-32"
         >
           Back
         </Button>
@@ -183,7 +183,7 @@ export default function StrengthsPage() {
         <Button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="w-32"
+          className="min-h-[44px] w-full sm:w-auto text-base sm:text-lg"
         >
           {isSubmitting ? 'Saving...' : 'Continue'}
           <ArrowRight className="ml-2 h-4 w-4" />
