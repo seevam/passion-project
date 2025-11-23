@@ -57,6 +57,19 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Prevent text decoration and ensure clean rendering */
+  a {
+    text-decoration: none;
+  }
+
+  /* Ensure SVG icons render cleanly */
+  svg {
+    display: block;
+    flex-shrink: 0;
   }
 }
 
