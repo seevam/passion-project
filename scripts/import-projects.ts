@@ -1,16 +1,33 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { currentUser } from '@clerk/nextjs/server';
-import { db } from '@/lib/db';
+import { db } from '../lib/db';
+import * as fs from 'fs';
+import * as path from 'path';
 
-// CSV to JSON parser
+// CSV Parser
 function parseCSV(csvText: string): any[] {
   const lines = csvText.trim().split('\n');
-  const headers = lines[0].split(',').map(h => h.trim());
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
 
   return lines.slice(1).map(line => {
-    const values = line.split(',').map(v => v.trim());
-    const obj: any = {};
+    // Handle quoted fields that may contain commas
+    const values: string[] = [];
+    let currentValue = '';
+    let insideQuotes = false;
 
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+
+      if (char === '"') {
+        insideQuotes = !insideQuotes;
+      } else if (char === ',' && !insideQuotes) {
+        values.push(currentValue.trim().replace(/^"|"$/g, ''));
+        currentValue = '';
+      } else {
+        currentValue += char;
+      }
+    }
+    values.push(currentValue.trim().replace(/^"|"$/g, ''));
+
+    const obj: any = {};
     headers.forEach((header, index) => {
       obj[header] = values[index] || '';
     });
@@ -81,7 +98,7 @@ function mapCSVProject(csvRow: any): any {
     category,
     studentName: csvRow.student_name || csvRow.student || csvRow.author || 'Anonymous Student',
     studentEmail: csvRow.email || csvRow.student_email || generateEmail(),
-    completedDate,
+    completedDate: completedDate || new Date(),
     thumbnailUrl: csvRow.thumbnail || csvRow.image || csvRow.photo,
     tags: csvRow.tags ? csvRow.tags.split(';').map((t: string) => t.trim()) : [],
     country: csvRow.country,
@@ -89,45 +106,47 @@ function mapCSVProject(csvRow: any): any {
   };
 }
 
-export async function POST(request: NextRequest) {
+async function importProjects() {
   try {
-    const user = await currentUser();
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
-    const batchSize = parseInt(formData.get('batchSize') as string) || 100;
-
-    if (!file) {
-      return NextResponse.json(
-        { error: 'No file provided' },
-        { status: 400 }
-      );
-    }
+    console.log('🚀 Starting project import...\n');
 
     // Read CSV file
-    const csvText = await file.text();
+    const csvPath = process.env.CSV_PATH || path.join(__dirname, '../data/projects.csv');
+    console.log(`📂 Reading CSV from: ${csvPath}`);
+
+    if (!fs.existsSync(csvPath)) {
+      throw new Error(`CSV file not found at: ${csvPath}\nPlease place your CSV file at: data/projects.csv`);
+    }
+
+    const csvText = fs.readFileSync(csvPath, 'utf-8');
     const csvData = parseCSV(csvText);
 
-    // Map to our format
-    const projects = csvData.map(mapCSVProject);
+    console.log(`📊 Found ${csvData.length} projects in CSV\n`);
+
+    // Show first row structure
+    if (csvData.length > 0) {
+      console.log('📋 CSV columns detected:', Object.keys(csvData[0]).join(', '));
+      console.log('📝 First project:', csvData[0].title || 'Untitled');
+      console.log('');
+    }
 
     const results = {
-      total: projects.length,
+      total: csvData.length,
       imported: 0,
       skipped: 0,
       errors: [] as string[],
     };
 
+    const batchSize = 100;
+    const projects = csvData.map(mapCSVProject);
+
     // Process in batches
     for (let i = 0; i < projects.length; i += batchSize) {
       const batch = projects.slice(i, i + batchSize);
+      const batchNum = Math.floor(i / batchSize) + 1;
+      const totalBatches = Math.ceil(projects.length / batchSize);
+
+      console.log(`⏳ Processing batch ${batchNum}/${totalBatches} (${batch.length} projects)...`);
 
       for (const projectData of batch) {
         try {
@@ -158,19 +177,7 @@ export async function POST(request: NextRequest) {
               category: projectData.category,
               status: 'COMPLETED',
               showcaseInGallery: true,
-              completedAt: projectData.completedDate
-                ? new Date(projectData.completedDate)
-                : new Date(),
-              ...(projectData.thumbnailUrl && {
-                documents: {
-                  create: {
-                    type: 'photo',
-                    title: 'Project Thumbnail',
-                    url: projectData.thumbnailUrl,
-                    thumbnailUrl: projectData.thumbnailUrl,
-                  },
-                },
-              }),
+              completedAt: projectData.completedDate,
             },
           });
 
@@ -178,31 +185,41 @@ export async function POST(request: NextRequest) {
         } catch (error) {
           results.skipped++;
           results.errors.push(
-            `Row ${i + results.imported + results.skipped}: ${error instanceof Error ? error.message : 'Unknown error'}`
+            `Row ${i + results.imported + results.skipped + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`
           );
 
-          if (results.errors.length > 50) {
-            results.errors = results.errors.slice(0, 50);
-            results.errors.push('... (additional errors omitted)');
-            break;
+          // Only show first 10 errors
+          if (results.errors.length <= 10) {
+            console.error(`  ⚠️  Error: ${results.errors[results.errors.length - 1]}`);
           }
         }
       }
+
+      console.log(`  ✅ Batch ${batchNum} complete: ${results.imported} total imported, ${results.skipped} skipped\n`);
     }
 
-    return NextResponse.json({
-      success: true,
-      message: `CSV import completed: ${results.imported} imported, ${results.skipped} skipped`,
-      results,
-    });
+    console.log('═══════════════════════════════════════════');
+    console.log('🎉 Import Complete!');
+    console.log('═══════════════════════════════════════════');
+    console.log(`📊 Total projects: ${results.total}`);
+    console.log(`✅ Successfully imported: ${results.imported}`);
+    console.log(`⚠️  Skipped: ${results.skipped}`);
+
+    if (results.errors.length > 10) {
+      console.log(`\n⚠️  Total errors: ${results.errors.length} (showing first 10 above)`);
+    }
+
+    console.log('\n💡 Next steps:');
+    console.log('   1. Visit the Gallery to see imported projects');
+    console.log('   2. Personalization will automatically match projects to user profiles');
+    console.log('═══════════════════════════════════════════\n');
+
+    process.exit(0);
   } catch (error) {
-    console.error('CSV Import Error:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to import CSV',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    console.error('\n❌ Import failed:', error instanceof Error ? error.message : error);
+    process.exit(1);
   }
 }
+
+// Run import
+importProjects();
