@@ -17,20 +17,18 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       <div
         className={cn(
           'flex-1 overflow-auto transition-all duration-300',
-          // No margin on mobile (bottom nav pill), margin on desktop based on sidebar state
-          'md:ml-20 lg:ml-64',
-          isCollapsed && 'md:ml-20'
+          // Dynamic margin based on sidebar state
+          isCollapsed ? 'md:ml-20' : 'md:ml-20 lg:ml-64'
         )}
       >
         <Header />
         <main
           className={cn(
-            'mx-auto transition-all duration-300',
+            'min-h-full transition-all duration-300',
             // Mobile: full width with bottom padding for nav pill
-            'p-4 pb-24 md:pb-8',
+            'p-4 pb-24 md:pb-8 md:p-8',
             // Desktop: centered when collapsed, full width when expanded
-            'md:p-8',
-            isCollapsed ? 'md:max-w-6xl' : 'md:max-w-none'
+            isCollapsed ? 'mx-auto max-w-6xl' : 'w-full'
           )}
         >
           {children}
