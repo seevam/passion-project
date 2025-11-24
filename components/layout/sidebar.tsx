@@ -14,6 +14,7 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  Upload,
 } from 'lucide-react';
 import { useSidebar } from './sidebar-provider';
 
@@ -52,6 +53,11 @@ const navigation = [
     name: 'Gallery',
     href: '/gallery',
     icon: Users,
+  },
+  {
+    name: 'Import CSV',
+    href: '/admin/import-csv',
+    icon: Upload,
   },
   {
     name: 'Settings',
