@@ -34,13 +34,14 @@ export default function AdminImportPage() {
     }
 
     setIsImporting(true);
-    setMessages([]);
+    setMessages(['🔄 Initiating import request...']);
     setProgress(0);
     setStats({ imported: 0, skipped: 0 });
     setIsComplete(false);
     setError(null);
 
     try {
+      console.log('Starting import request...');
       const response = await fetch('/api/admin/run-import', {
         method: 'POST',
         headers: {
@@ -49,9 +50,17 @@ export default function AdminImportPage() {
         },
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Response error:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
+
+      setMessages(prev => [...prev, '✅ Connected to import endpoint']);
+      console.log('Starting to read stream...');
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
@@ -60,45 +69,59 @@ export default function AdminImportPage() {
         throw new Error('No response body');
       }
 
+      let chunkCount = 0;
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          console.log('Stream complete, total chunks:', chunkCount);
+          break;
+        }
 
+        chunkCount++;
         const chunk = decoder.decode(value);
+        console.log(`Chunk ${chunkCount}:`, chunk.substring(0, 100));
+
         const lines = chunk.split('\n\n');
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const data: ImportMessage = JSON.parse(line.slice(6));
+            try {
+              const data: ImportMessage = JSON.parse(line.slice(6));
+              console.log('Parsed data:', data);
 
-            if (data.error) {
-              setError(data.error);
-              setMessages(prev => [...prev, `❌ Error: ${data.error}`]);
-            } else if (data.message) {
-              setMessages(prev => [...prev, data.message!]);
-            }
+              if (data.error) {
+                setError(data.error);
+                setMessages(prev => [...prev, `❌ Error: ${data.error}`]);
+              } else if (data.message) {
+                setMessages(prev => [...prev, data.message!]);
+              }
 
-            if (data.progress) {
-              const progressPercent = (data.progress.current / data.progress.total) * 100;
-              setProgress(progressPercent);
-            }
+              if (data.progress) {
+                const progressPercent = (data.progress.current / data.progress.total) * 100;
+                setProgress(progressPercent);
+              }
 
-            if (data.stats) {
-              setStats(data.stats);
-            }
+              if (data.stats) {
+                setStats(data.stats);
+              }
 
-            if (data.type === 'complete') {
-              setIsComplete(true);
-              setProgress(100);
+              if (data.type === 'complete') {
+                setIsComplete(true);
+                setProgress(100);
+              }
+            } catch (parseError) {
+              console.error('Failed to parse SSE data:', parseError, 'Line:', line);
             }
           }
         }
       }
     } catch (err) {
+      console.error('Import failed:', err);
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMsg);
       setMessages(prev => [...prev, `❌ Failed: ${errorMsg}`]);
     } finally {
+      console.log('Import process ended');
       setIsImporting(false);
     }
   };
