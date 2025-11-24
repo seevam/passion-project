@@ -4,8 +4,8 @@ import { db } from '@/lib/db';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Set a longer timeout for this endpoint (10 minutes)
-export const maxDuration = 600;
+// Set a longer timeout for this endpoint (5 minutes - max for hobby plan)
+export const maxDuration = 300;
 
 // CSV Parser
 function parseCSV(csvText: string): any[] {
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
 
   const stream = new ReadableStream({
     async start(controller) {
-      const send = (data: string) => {
+      const send = (data: any) => {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
       };
 
