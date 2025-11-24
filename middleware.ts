@@ -6,6 +6,7 @@ const isPublicRoute = createRouteMatcher([
   '/sign-up(.*)',
   '/gallery(.*)', // Public project gallery
   '/api/auth/webhook', // Clerk webhook for user creation
+  '/api/admin/run-import', // Admin import with token auth
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
