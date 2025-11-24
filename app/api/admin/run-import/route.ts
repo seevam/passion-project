@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { currentUser } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -117,14 +116,6 @@ export async function POST(request: NextRequest) {
 
         if (!token || token !== adminToken) {
           send({ error: 'Unauthorized: Invalid or missing admin token' });
-          controller.close();
-          return;
-        }
-
-        // Additional security: Check if user is authenticated
-        const user = await currentUser();
-        if (!user) {
-          send({ error: 'Unauthorized: Must be logged in' });
           controller.close();
           return;
         }
