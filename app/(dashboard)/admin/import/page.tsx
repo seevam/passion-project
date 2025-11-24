@@ -75,7 +75,7 @@ export default function AdminImportPage() {
               setError(data.error);
               setMessages(prev => [...prev, `❌ Error: ${data.error}`]);
             } else if (data.message) {
-              setMessages(prev => [...prev, data.message]);
+              setMessages(prev => [...prev, data.message!]);
             }
 
             if (data.progress) {
