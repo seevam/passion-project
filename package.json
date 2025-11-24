@@ -8,8 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "DATABASE_URL=${DATABASE_URL:-postgresql://user:pass@localhost:5432/db} prisma generate",
-    "seed:leaderboard": "tsx prisma/seed-leaderboard.ts",
-    "import:projects": "tsx scripts/import-projects.ts"
+    "seed:leaderboard": "npx tsx prisma/seed-leaderboard.ts",
+    "import:projects": "npx tsx scripts/import-projects.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.1",
