@@ -23,7 +23,18 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         )}
       >
         <Header />
-        <main className="p-4 pb-20 md:p-8 md:pb-8">{children}</main>
+        <main
+          className={cn(
+            'mx-auto transition-all duration-300',
+            // Mobile: full width with bottom padding for nav pill
+            'p-4 pb-24 md:pb-8',
+            // Desktop: centered when collapsed, full width when expanded
+            'md:p-8',
+            isCollapsed ? 'md:max-w-6xl' : 'md:max-w-none'
+          )}
+        >
+          {children}
+        </main>
       </div>
     </div>
   );
