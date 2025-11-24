@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
+import { sortProjectsByRelevance, getMatchPercentage } from '@/lib/services/project-matcher';
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +19,18 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '12');
     const category = searchParams.get('category');
     const search = searchParams.get('search');
-    const sortBy = searchParams.get('sortBy') || 'recent'; // recent, popular, oldest
+    const sortBy = searchParams.get('sortBy') || 'recommended';
+    const showAll = searchParams.get('showAll') === 'true';
+
+    // Get current user profile for personalization
+    const dbUser = await db.user.findUnique({
+      where: { clerkId: user.id },
+      include: {
+        profile: true,
+      },
+    });
+
+    const userProfile = dbUser?.profile;
 
     // Build where clause
     const where: any = {
@@ -32,25 +44,33 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
+        { title: { contains: search } },
+        { description: { contains: search } },
       ];
     }
+
+    // For personalized view, limit to preferred categories
+    if (!showAll && userProfile && sortBy === 'recommended') {
+      const preferredCategories = getPreferredCategories(userProfile);
+      if (preferredCategories.length > 0 && !category) {
+        where.category = { in: preferredCategories };
+      }
+    }
+
+    // Get total count
+    const totalCount = await db.project.count({ where });
+
+    // Fetch more projects for sorting by relevance
+    const fetchLimit = sortBy === 'recommended' ? limit * 3 : limit;
 
     // Build orderBy clause
     let orderBy: any = { createdAt: 'desc' };
     if (sortBy === 'oldest') {
       orderBy = { createdAt: 'asc' };
-    } else if (sortBy === 'popular') {
-      // TODO: Add view/like count when implemented
-      orderBy = { createdAt: 'desc' };
     }
 
-    // Get total count for pagination
-    const totalCount = await db.project.count({ where });
-
-    // Get paginated projects
-    const projects = await db.project.findMany({
+    // Get projects
+    let projects = await db.project.findMany({
       where,
       include: {
         user: {
@@ -72,9 +92,15 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy,
-      skip: (page - 1) * limit,
-      take: limit,
+      skip: sortBy === 'recommended' ? 0 : (page - 1) * limit,
+      take: fetchLimit,
     });
+
+    // Sort by relevance if recommended
+    if (sortBy === 'recommended' && userProfile) {
+      projects = sortProjectsByRelevance(projects, userProfile);
+      projects = projects.slice((page - 1) * limit, page * limit);
+    }
 
     // Transform data for frontend
     const transformedProjects = projects.map((project) => ({
@@ -90,11 +116,14 @@ export async function GET(request: NextRequest) {
       },
       completedAt: project.completedAt,
       createdAt: project.createdAt,
+      matchScore: userProfile ? getMatchPercentage(project, userProfile) : null,
     }));
 
     return NextResponse.json({
       success: true,
       projects: transformedProjects,
+      isPersonalized: sortBy === 'recommended' && !!userProfile,
+      hasProfile: !!userProfile,
       pagination: {
         page,
         limit,
@@ -111,4 +140,33 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+function getPreferredCategories(profile: any): string[] {
+  const categories: string[] = [];
+  const subjects = profile.favoriteSubjects || [];
+  const activities = profile.currentActivities || [];
+  const all = [...subjects, ...activities].map((s: string) => s.toLowerCase());
+
+  if (all.some((s: string) => ['science', 'math', 'technology', 'engineering', 'computer'].some(kw => s.includes(kw)))) {
+    categories.push('TECHNICAL', 'RESEARCH');
+  }
+
+  if (all.some((s: string) => ['art', 'music', 'drama', 'creative', 'design'].some(kw => s.includes(kw)))) {
+    categories.push('CREATIVE');
+  }
+
+  if (all.some((s: string) => ['business', 'economics', 'entrepreneur', 'startup'].some(kw => s.includes(kw)))) {
+    categories.push('ENTREPRENEURIAL');
+  }
+
+  if (all.some((s: string) => ['social', 'community', 'volunteer', 'service', 'activism'].some(kw => s.includes(kw)))) {
+    categories.push('SOCIAL_IMPACT');
+  }
+
+  if (all.some((s: string) => ['leadership', 'president', 'captain', 'mentor'].some(kw => s.includes(kw)))) {
+    categories.push('LEADERSHIP');
+  }
+
+  return categories.length > 0 ? categories : ['CREATIVE', 'SOCIAL_IMPACT', 'ENTREPRENEURIAL', 'RESEARCH', 'TECHNICAL', 'LEADERSHIP'];
 }

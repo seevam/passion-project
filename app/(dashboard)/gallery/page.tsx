@@ -31,6 +31,7 @@ interface Project {
   };
   completedAt: string | null;
   createdAt: string;
+  matchScore: number | null;
 }
 
 interface PaginationData {
@@ -69,10 +70,13 @@ export default function GalleryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState('recommended');
+  const [isPersonalized, setIsPersonalized] = useState(false);
+  const [hasProfile, setHasProfile] = useState(false);
 
   useEffect(() => {
     loadProjects();
-  }, [currentPage, selectedCategory]);
+  }, [currentPage, selectedCategory, sortBy]);
 
   const loadProjects = async () => {
     setIsLoading(true);
@@ -80,6 +84,7 @@ export default function GalleryPage() {
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: '12',
+        sortBy,
         ...(selectedCategory !== 'all' && { category: selectedCategory }),
         ...(searchQuery && { search: searchQuery }),
       });
@@ -90,6 +95,8 @@ export default function GalleryPage() {
       if (data.success) {
         setProjects(data.projects);
         setPagination(data.pagination);
+        setIsPersonalized(data.isPersonalized);
+        setHasProfile(data.hasProfile);
       }
     } catch (error) {
       console.error('Error loading gallery:', error);
@@ -105,6 +112,11 @@ export default function GalleryPage() {
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (newSort: string) => {
+    setSortBy(newSort);
     setCurrentPage(1);
   };
 
@@ -172,6 +184,56 @@ export default function GalleryPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Personalization Banner */}
+      {isPersonalized && hasProfile && (
+        <Card className="border-2 border-primary-300 bg-gradient-to-r from-primary-50 via-secondary-50 to-accent-50">
+          <CardContent className="flex items-center gap-3 p-4">
+            <Sparkles className="h-6 w-6 shrink-0 text-primary-600" />
+            <div className="flex-1">
+              <p className="font-semibold text-gray-900">✨ Personalized for You</p>
+              <p className="text-sm text-muted-foreground">
+                Showing projects that match your interests and profile
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSortChange('recent')}
+              className="shrink-0"
+            >
+              Show All
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Sort Options */}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant={sortBy === 'recommended' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => handleSortChange('recommended')}
+          className="gap-2"
+        >
+          <Sparkles className="h-4 w-4" />
+          Recommended
+        </Button>
+        <Button
+          variant={sortBy === 'recent' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => handleSortChange('recent')}
+        >
+          Recent
+        </Button>
+        <Button
+          variant={sortBy === 'popular' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => handleSortChange('popular')}
+        >
+          Popular
+        </Button>
       </div>
 
       {/* Filters */}
@@ -267,16 +329,27 @@ export default function GalleryPage() {
                 </div>
 
                 <CardContent className="p-4">
-                  {/* Category Badge */}
-                  <Badge
-                    className={cn(
-                      'mb-2 border',
-                      CATEGORY_COLORS[project.category as keyof typeof CATEGORY_COLORS] ||
-                        'bg-gray-100 text-gray-700'
+                  {/* Badges */}
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <Badge
+                      className={cn(
+                        'border',
+                        CATEGORY_COLORS[project.category as keyof typeof CATEGORY_COLORS] ||
+                          'bg-gray-100 text-gray-700'
+                      )}
+                    >
+                      {project.category.replace('_', ' ')}
+                    </Badge>
+                    {project.matchScore !== null && project.matchScore >= 70 && (
+                      <Badge
+                        variant="default"
+                        className="gap-1 bg-gradient-to-r from-primary-500 to-secondary-500"
+                      >
+                        <Sparkles className="h-3 w-3" />
+                        {project.matchScore}% Match
+                      </Badge>
                     )}
-                  >
-                    {project.category.replace('_', ' ')}
-                  </Badge>
+                  </div>
 
                   {/* Title */}
                   <h3 className="line-clamp-2 text-lg font-bold text-gray-900 group-hover:text-primary-600">
