@@ -21,10 +21,8 @@ export async function GET(request: NextRequest) {
 
     if (period === 'all-time') {
       // Get top users by total XP
+      // Note: Showing all users for now. Add publicProfile: true filter if you want privacy controls
       leaderboardData = await db.user.findMany({
-        where: {
-          publicProfile: true, // Only show users with public profiles
-        },
         select: {
           id: true,
           name: true,
