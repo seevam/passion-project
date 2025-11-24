@@ -21,15 +21,71 @@ function parseCSV(csvText: string): any[] {
 
 // Map CSV columns to our schema
 function mapCSVProject(csvRow: any): any {
+  // Build description from abstract and award if available
+  let description = csvRow.abstract || csvRow.description || csvRow.project_description || csvRow.summary || 'No description provided';
+
+  // Add award info to description if present
+  if (csvRow.award) {
+    description += `\n\n🏆 Award: ${csvRow.award}`;
+  }
+
+  // Add country info if present
+  if (csvRow.country) {
+    description += `\n📍 Country: ${csvRow.country}`;
+  }
+
+  // Generate a unique email based on title if no student email
+  const generateEmail = () => {
+    const titleSlug = csvRow.title?.toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '') || 'project';
+    const randomId = Math.random().toString(36).substr(2, 6);
+    return `${titleSlug}.${randomId}@imported.edu`;
+  };
+
+  // Try to determine category from award or default to RESEARCH
+  let category = 'RESEARCH';
+  if (csvRow.category) {
+    category = csvRow.category.toUpperCase();
+  } else if (csvRow.award) {
+    const awardLower = csvRow.award.toLowerCase();
+    if (awardLower.includes('art') || awardLower.includes('creative') || awardLower.includes('design')) {
+      category = 'CREATIVE';
+    } else if (awardLower.includes('tech') || awardLower.includes('engineering') || awardLower.includes('comput')) {
+      category = 'TECHNICAL';
+    } else if (awardLower.includes('social') || awardLower.includes('community') || awardLower.includes('impact')) {
+      category = 'SOCIAL_IMPACT';
+    } else if (awardLower.includes('business') || awardLower.includes('entrepreneur')) {
+      category = 'ENTREPRENEURIAL';
+    } else if (awardLower.includes('leader')) {
+      category = 'LEADERSHIP';
+    }
+  }
+
+  // Parse year for completed date
+  let completedDate: Date | undefined;
+  if (csvRow.year) {
+    const year = parseInt(csvRow.year);
+    if (!isNaN(year) && year > 1900 && year < 2100) {
+      completedDate = new Date(year, 5, 1); // Default to June 1st of that year
+    }
+  }
+  if (!completedDate && csvRow.completed_date) {
+    completedDate = new Date(csvRow.completed_date);
+  }
+  if (!completedDate && csvRow.date) {
+    completedDate = new Date(csvRow.date);
+  }
+
   return {
-    title: csvRow.title || csvRow.project_title || csvRow.name,
-    description: csvRow.description || csvRow.project_description || csvRow.summary,
-    category: (csvRow.category || 'CREATIVE').toUpperCase(),
-    studentName: csvRow.student_name || csvRow.student || csvRow.author,
-    studentEmail: csvRow.email || csvRow.student_email || `${csvRow.student_name?.toLowerCase().replace(/\s+/g, '.')}@imported.edu`,
-    completedDate: csvRow.completed_date || csvRow.date || csvRow.completion_date,
+    title: csvRow.title || csvRow.project_title || csvRow.name || 'Untitled Project',
+    description,
+    category,
+    studentName: csvRow.student_name || csvRow.student || csvRow.author || 'Anonymous Student',
+    studentEmail: csvRow.email || csvRow.student_email || generateEmail(),
+    completedDate,
     thumbnailUrl: csvRow.thumbnail || csvRow.image || csvRow.photo,
     tags: csvRow.tags ? csvRow.tags.split(';').map((t: string) => t.trim()) : [],
+    country: csvRow.country,
+    award: csvRow.award,
   };
 }
 

@@ -74,21 +74,23 @@ export default function CSVImportPage() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="font-semibold mb-2">Required Columns:</p>
+              <p className="font-semibold mb-2">Supported Column Names:</p>
               <ul className="space-y-1 text-muted-foreground">
-                <li>• <code className="bg-gray-100 px-1">title</code> or <code className="bg-gray-100 px-1">project_title</code> or <code className="bg-gray-100 px-1">name</code></li>
-                <li>• <code className="bg-gray-100 px-1">description</code> or <code className="bg-gray-100 px-1">project_description</code></li>
-                <li>• <code className="bg-gray-100 px-1">student_name</code> or <code className="bg-gray-100 px-1">student</code> or <code className="bg-gray-100 px-1">author</code></li>
-                <li>• <code className="bg-gray-100 px-1">email</code> or <code className="bg-gray-100 px-1">student_email</code></li>
+                <li>• <code className="bg-gray-100 px-1">title</code> - Project title (required)</li>
+                <li>• <code className="bg-gray-100 px-1">abstract</code> - Project description</li>
+                <li>• <code className="bg-gray-100 px-1">year</code> - Completion year</li>
+                <li>• <code className="bg-gray-100 px-1">country</code> - Student's country</li>
+                <li>• <code className="bg-gray-100 px-1">award</code> - Awards received</li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold mb-2">Optional Columns:</p>
+              <p className="font-semibold mb-2">Also Accepted (flexible):</p>
               <ul className="space-y-1 text-muted-foreground">
-                <li>• <code className="bg-gray-100 px-1">category</code> (CREATIVE, TECHNICAL, RESEARCH, etc.)</li>
-                <li>• <code className="bg-gray-100 px-1">completed_date</code> or <code className="bg-gray-100 px-1">date</code></li>
-                <li>• <code className="bg-gray-100 px-1">thumbnail</code> or <code className="bg-gray-100 px-1">image</code></li>
-                <li>• <code className="bg-gray-100 px-1">tags</code> (semicolon-separated)</li>
+                <li>• <code className="bg-gray-100 px-1">description</code> / <code className="bg-gray-100 px-1">summary</code></li>
+                <li>• <code className="bg-gray-100 px-1">student_name</code> / <code className="bg-gray-100 px-1">author</code></li>
+                <li>• <code className="bg-gray-100 px-1">email</code> / <code className="bg-gray-100 px-1">student_email</code></li>
+                <li>• <code className="bg-gray-100 px-1">category</code> - Auto-detected from award</li>
+                <li>• <code className="bg-gray-100 px-1">thumbnail</code> / <code className="bg-gray-100 px-1">image</code></li>
               </ul>
             </div>
           </div>
@@ -96,7 +98,9 @@ export default function CSVImportPage() {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              <strong>Categories:</strong> CREATIVE, TECHNICAL, RESEARCH, SOCIAL_IMPACT, ENTREPRENEURIAL, LEADERSHIP
+              <strong>Example CSV format:</strong> title,year,country,abstract,award
+              <br />
+              <strong>Categories auto-detected:</strong> CREATIVE, TECHNICAL, RESEARCH, SOCIAL_IMPACT, ENTREPRENEURIAL, LEADERSHIP
             </AlertDescription>
           </Alert>
         </CardContent>
