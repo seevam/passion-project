@@ -28,6 +28,7 @@ import {
   Trash2,
   MessageSquare,
   FileText,
+  Sparkles,
 } from 'lucide-react';
 
 interface Project {
@@ -119,6 +120,9 @@ export default function ProjectDetailPage() {
     hoursLogged: 0,
     moodRating: 3,
   });
+
+  // AI plan generation
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
 
   useEffect(() => {
     if (projectId) {
@@ -257,6 +261,33 @@ export default function ProjectDetailPage() {
       }
     } catch (error) {
       console.error('Error creating check-in:', error);
+    }
+  };
+
+  const generateAIPlan = async () => {
+    setIsGeneratingPlan(true);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/generate-plan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Reload project to show new milestones and tasks
+        await loadProject();
+        alert(
+          `✨ Generated ${data.milestonesCreated} milestones and ${data.tasksCreated} tasks!`
+        );
+      } else {
+        alert('Failed to generate plan. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error generating plan:', error);
+      alert('Failed to generate plan. Please try again.');
+    } finally {
+      setIsGeneratingPlan(false);
     }
   };
 
@@ -461,10 +492,21 @@ export default function ProjectDetailPage() {
         <TabsContent value="milestones" className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">Project Milestones</h3>
-            <Button onClick={() => setShowMilestoneForm(!showMilestoneForm)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Milestone
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={generateAIPlan}
+                disabled={isGeneratingPlan || project.milestones.length > 0}
+                variant="outline"
+                className="bg-gradient-to-r from-purple-50 to-primary-50 hover:from-purple-100 hover:to-primary-100"
+              >
+                <Sparkles className="mr-2 h-4 w-4 text-purple-600" />
+                {isGeneratingPlan ? 'Generating...' : 'AI Generate Plan'}
+              </Button>
+              <Button onClick={() => setShowMilestoneForm(!showMilestoneForm)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Manually
+              </Button>
+            </div>
           </div>
 
           {showMilestoneForm && (
@@ -511,9 +553,30 @@ export default function ProjectDetailPage() {
           {project.milestones.length === 0 ? (
             <Card className="border-2 border-dashed">
               <CardContent className="py-12 text-center">
-                <Target className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
-                <p className="mt-4 text-muted-foreground">
-                  No milestones yet. Add your first milestone to track progress!
+                <Sparkles className="mx-auto h-12 w-12 text-purple-400 opacity-70" />
+                <p className="mt-4 text-lg font-semibold text-gray-900">
+                  Let AI Create Your Project Plan
+                </p>
+                <p className="mt-2 text-muted-foreground">
+                  Get a comprehensive breakdown of milestones and tasks tailored to your project
+                </p>
+                <Button
+                  onClick={generateAIPlan}
+                  disabled={isGeneratingPlan}
+                  className="mt-6 bg-gradient-to-r from-purple-500 to-primary-500 hover:from-purple-600 hover:to-primary-600"
+                  size="lg"
+                >
+                  <Sparkles className="mr-2 h-5 w-5" />
+                  {isGeneratingPlan ? 'Generating Your Plan...' : 'Generate AI Project Plan'}
+                </Button>
+                <p className="mt-4 text-xs text-muted-foreground">
+                  Or{' '}
+                  <button
+                    onClick={() => setShowMilestoneForm(true)}
+                    className="text-primary-600 underline hover:text-primary-700"
+                  >
+                    add milestones manually
+                  </button>
                 </p>
               </CardContent>
             </Card>
