@@ -6,11 +6,11 @@ import { MilestoneGenerator } from '@/lib/ai/milestone-generator';
 // POST /api/projects/[id]/generate-plan - Generate AI milestones and tasks
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireAuth();
-    const projectId = params.id;
+    const { id: projectId } = await params;
 
     // Get the project
     const project = await db.project.findUnique({
