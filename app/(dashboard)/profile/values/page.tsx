@@ -46,12 +46,12 @@ export default function ValuesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           topValues: selectedValues,
-          completionPercent: 50, // Completed values
+          completionPercent: 35, // Completed values (step 2/6)
         }),
       });
 
       if (response.ok) {
-        router.push('/profile/strengths');
+        router.push('/profile/motivation');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -67,7 +67,7 @@ export default function ValuesPage() {
         <div className="mb-4 inline-flex items-center rounded-full bg-primary-100 px-4 py-2">
           <Sparkles className="mr-2 h-4 w-4 text-primary-600" />
           <span className="text-sm font-semibold text-primary-700">
-            Step 2 of 4
+            Step 2 of 6
           </span>
         </div>
         <h1 className="text-4xl font-bold text-gray-900">
@@ -79,7 +79,7 @@ export default function ValuesPage() {
       </div>
 
       {/* Progress Bar */}
-      <Progress value={50} className="h-3" />
+      <Progress value={35} className="h-3" />
 
       {/* Selected Values */}
       {selectedValues.length > 0 && (

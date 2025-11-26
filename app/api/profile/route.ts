@@ -57,7 +57,7 @@ export async function POST(req: Request) {
         topValues: [],
         strengthsRadar: {},
         problemFocus: [],
-        completionPercent: 25, // Completed quick start
+        completionPercent: 20, // Completed quick start (step 1 of 6)
       },
     });
 

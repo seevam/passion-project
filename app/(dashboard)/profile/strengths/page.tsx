@@ -42,12 +42,12 @@ export default function StrengthsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           strengthsRadar: strengths,
-          completionPercent: 75, // Completed strengths
+          completionPercent: 65, // Completed strengths (step 4/6)
         }),
       });
 
       if (response.ok) {
-        router.push('/profile/interests');
+        router.push('/profile/grit');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -70,7 +70,7 @@ export default function StrengthsPage() {
         <div className="mb-4 inline-flex items-center rounded-full bg-primary-100 px-4 py-2">
           <Sparkles className="mr-2 h-4 w-4 text-primary-600" />
           <span className="text-sm font-semibold text-primary-700">
-            Step 3 of 4
+            Step 4 of 6
           </span>
         </div>
         <h1 className="text-4xl font-bold text-gray-900">
@@ -82,7 +82,7 @@ export default function StrengthsPage() {
       </div>
 
       {/* Progress Bar */}
-      <Progress value={75} className="h-3" />
+      <Progress value={65} className="h-3" />
 
       {/* Strengths Assessment */}
       <Card>
@@ -174,7 +174,7 @@ export default function StrengthsPage() {
       <div className="flex items-center justify-between">
         <Button
           variant="outline"
-          onClick={() => router.push('/profile/values')}
+          onClick={() => router.push('/profile/motivation')}
           className="w-32"
         >
           Back

@@ -47,26 +47,32 @@ export class IdeaGenerator {
   }
 
   private getSystemPrompt(): string {
-    return `You are an expert career counselor and project advisor for high school students.
+    return `You are an expert career counselor and project advisor for high school students with expertise in developmental psychology and interest development theory.
 
 Your role:
-- Generate creative, feasible passion project ideas
+- Generate creative, feasible passion project ideas based on validated psychological assessments
+- Use Self-Determination Theory, Grit Research, Growth Mindset, and RIASEC career interests
 - Ensure projects are achievable for students aged 14-18
-- Prioritize impact and uniqueness
-- Consider student's time constraints and skills
+- Prioritize intrinsic motivation, flow states, and sustainable passion development
+- Consider student's time constraints, skills, and psychological profile
 
 Output requirements:
 - Return valid JSON only
 - Generate 8-10 diverse ideas
 - Include detailed feasibility analysis
 - Provide specific, measurable impact metrics
+- Consider autonomy, competence, and relatedness needs (SDT)
+- Match projects to RIASEC career interest profiles
+- Align with student's growth mindset and challenge-seeking behavior
 
 CRITICAL: Projects must be:
 ✓ Achievable within 3-6 months
-✓ Aligned with student interests
+✓ Aligned with student interests and intrinsic motivation
+✓ Support harmonious passion development (not obsessive)
 ✓ Meaningful and impactful
 ✓ Unique (not generic volunteering)
-✓ Specific and concrete`;
+✓ Specific and concrete
+✓ Build perseverance and grit`;
   }
 
   private buildPrompt(profile: UserProfile): string {
@@ -74,6 +80,7 @@ CRITICAL: Projects must be:
     const problemFocus = Array.isArray(profile.problemFocus) ? profile.problemFocus.join(', ') : '';
     const currentActivities = Array.isArray(profile.currentActivities) ? profile.currentActivities.join(', ') : '';
     const favoriteSubjects = Array.isArray(profile.favoriteSubjects) ? profile.favoriteSubjects.join(', ') : '';
+    const careerClusters = Array.isArray(profile.careerClusters) ? profile.careerClusters.join(', ') : '';
 
     return `Generate 8 personalized project ideas for this high school student:
 
@@ -94,14 +101,45 @@ ${profile.dreamCareer ? `CAREER ASPIRATION: ${profile.dreamCareer}` : ''}
 STRENGTHS (Skills Radar):
 ${JSON.stringify(profile.strengthsRadar, null, 2)}
 
+INTRINSIC MOTIVATION (Self-Determination Theory):
+${profile.autonomyScore ? `- Autonomy (self-direction): ${profile.autonomyScore}/10` : ''}
+${profile.competenceScore ? `- Competence (confidence): ${profile.competenceScore}/10` : ''}
+${profile.relatednessScore ? `- Relatedness (social connection): ${profile.relatednessScore}/10` : ''}
+
+PASSION & PERSISTENCE:
+${profile.passionType ? `- Passion Type: ${profile.passionType}` : ''}
+${profile.flowFrequency ? `- Flow State Frequency: ${profile.flowFrequency}/10` : ''}
+${profile.gritScore ? `- Grit Score: ${profile.gritScore}/10` : ''}
+${profile.perseveranceScore ? `- Perseverance: ${profile.perseveranceScore}/10` : ''}
+
+GROWTH MINDSET:
+${profile.growthMindsetScore ? `- Growth Mindset: ${profile.growthMindsetScore}/10` : ''}
+${profile.challengeResponse ? `- Challenge Response: ${profile.challengeResponse}` : ''}
+
+CAREER INTERESTS (RIASEC):
+${profile.riasecScores ? JSON.stringify(profile.riasecScores, null, 2) : ''}
+${careerClusters ? `Career Clusters: ${careerClusters}` : ''}
+
 Generate ideas that:
-1. Match their interests and values
+1. Match their interests, values, and RIASEC career profile
 2. Address problems they care about
 3. Are realistic for their time commitment
-4. Build on their existing skills while stretching them
-5. Are unique and memorable
-6. Can be completed in 3-6 months
-7. Have measurable impact
+4. Build on their existing skills while stretching them appropriately for their challenge level
+5. Support their intrinsic motivation (autonomy, competence, relatedness)
+6. Align with their passion type and flow preferences
+7. Build perseverance and grit through meaningful challenges
+8. Support their growth mindset (embrace challenges vs. avoid)
+9. Are unique and memorable
+10. Can be completed in 3-6 months
+11. Have measurable impact
+
+IMPORTANT CONSIDERATIONS:
+- High autonomy scores → suggest self-directed, independent projects
+- High relatedness scores → emphasize collaborative and community-focused projects
+- High grit/perseverance → suggest more ambitious, longer-term projects
+- Growth mindset (embrace challenges) → include stretch goals and learning opportunities
+- Harmonious passion type → balanced, sustainable project structures
+- RIASEC scores → align with career interest types (Realistic, Investigative, Artistic, Social, Enterprising, Conventional)
 
 Return in this JSON format:
 {
@@ -110,35 +148,54 @@ Return in this JSON format:
       "id": "idea_1",
       "title": "Concise project title",
       "description": "2-3 sentences explaining the project and its impact",
-      "category": "CREATIVE|SOCIAL_IMPACT|ENTREPRENEURIAL|RESEARCH|TECHNICAL|LEADERSHIP",
+      "category": "ONE OF: CREATIVE, SOCIAL_IMPACT, ENTREPRENEURIAL, RESEARCH, TECHNICAL, LEADERSHIP",
       "feasibilityScore": 85,
       "matchingPercent": 92,
       "timeEstimate": "4-6 months",
-      "uniqueness": "HIGH|MEDIUM|LOW",
+      "uniqueness": "HIGH, MEDIUM, or LOW",
       "impactMetrics": ["Specific metric 1", "Specific metric 2", "Specific metric 3"]
     }
   ]
-}`;
+}
+
+IMPORTANT: category must be EXACTLY ONE of these values: CREATIVE, SOCIAL_IMPACT, ENTREPRENEURIAL, RESEARCH, TECHNICAL, LEADERSHIP
+Do not combine multiple categories - choose the most fitting single category.`;
   }
 
   private validateAndEnhance(
     ideas: any[],
     profile: UserProfile
   ): GeneratedIdea[] {
+    const validCategories = ['CREATIVE', 'SOCIAL_IMPACT', 'ENTREPRENEURIAL', 'RESEARCH', 'TECHNICAL', 'LEADERSHIP'];
+
     return ideas
-      .map((idea, index) => ({
-        id: idea.id || `idea_${Date.now()}_${index}`,
-        title: idea.title || 'Untitled Project',
-        description: idea.description || 'No description provided',
-        category: idea.category || 'SOCIAL_IMPACT',
-        feasibilityScore: this.calculateFeasibility(idea, profile),
-        matchingPercent: idea.matchingPercent || 75,
-        timeEstimate: idea.timeEstimate || '4-6 months',
-        uniqueness: idea.uniqueness || 'MEDIUM',
-        impactMetrics: Array.isArray(idea.impactMetrics)
-          ? idea.impactMetrics.slice(0, 3)
-          : [],
-      }))
+      .map((idea, index) => {
+        // Parse category - handle cases where AI returns multiple categories separated by |
+        let category = idea.category || 'SOCIAL_IMPACT';
+        if (typeof category === 'string' && category.includes('|')) {
+          // Take the first valid category
+          const categories = category.split('|').map(c => c.trim());
+          category = categories.find(c => validCategories.includes(c)) || 'SOCIAL_IMPACT';
+        }
+        // Ensure category is valid
+        if (!validCategories.includes(category)) {
+          category = 'SOCIAL_IMPACT';
+        }
+
+        return {
+          id: idea.id || `idea_${Date.now()}_${index}`,
+          title: idea.title || 'Untitled Project',
+          description: idea.description || 'No description provided',
+          category: category as 'CREATIVE' | 'SOCIAL_IMPACT' | 'ENTREPRENEURIAL' | 'RESEARCH' | 'TECHNICAL' | 'LEADERSHIP',
+          feasibilityScore: this.calculateFeasibility(idea, profile),
+          matchingPercent: idea.matchingPercent || 75,
+          timeEstimate: idea.timeEstimate || '4-6 months',
+          uniqueness: idea.uniqueness || 'MEDIUM',
+          impactMetrics: Array.isArray(idea.impactMetrics)
+            ? idea.impactMetrics.slice(0, 3)
+            : [],
+        };
+      })
       .slice(0, 10);
   }
 

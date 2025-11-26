@@ -118,6 +118,35 @@ model UserProfile {
   problemFocus      String[] // what they care about
   dreamCareer       String?  @db.Text
 
+  // Scientific Assessment Data (based on validated psychological frameworks)
+
+  // Intrinsic Motivation (Self-Determination Theory: Deci & Ryan)
+  autonomyScore     Int?     // 1-10: preference for self-direction
+  competenceScore   Int?     // 1-10: confidence in abilities
+  relatednessScore  Int?     // 1-10: desire for social connection
+  motivationProfile Json?    // detailed SDT responses
+
+  // Passion & Interest Depth (Interest Development Theory: Hidi & Renninger)
+  interestDepth     Json?    // area-specific depth scores {tech: 8, art: 6...}
+  passionIndicators Json?    // flow states, persistence, re-engagement patterns
+  passionType       String?  // "harmonious", "obsessive", "emerging"
+  flowFrequency     Int?     // 1-10: how often they experience flow
+
+  // Grit & Persistence (Duckworth's Grit Scale)
+  gritScore         Int?     // 1-10: overall grit
+  perseveranceScore Int?     // 1-10: perseverance of effort
+  consistencyScore  Int?     // 1-10: consistency of interests
+  pastCompletions   Json?    // history of completed projects/commitments
+
+  // Growth Mindset (Dweck)
+  growthMindsetScore Int?    // 1-10: growth vs fixed mindset
+  challengeResponse  String? // "embrace", "avoid", "neutral"
+  failureAttribution Json?   // how they explain setbacks
+
+  // Career Interest Profile (RIASEC Model: Holland)
+  riasecScores      Json?    // {realistic, investigative, artistic, social, enterprising, conventional}
+  careerClusters    String[] @default([]) // matched career clusters based on profile
+
   // Discovery Activity Results
   projectDNA        Json?    // complete DNA structure
   approachStyle     String?  // "build-first", "research-first", etc
