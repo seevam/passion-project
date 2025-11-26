@@ -148,35 +148,54 @@ Return in this JSON format:
       "id": "idea_1",
       "title": "Concise project title",
       "description": "2-3 sentences explaining the project and its impact",
-      "category": "CREATIVE|SOCIAL_IMPACT|ENTREPRENEURIAL|RESEARCH|TECHNICAL|LEADERSHIP",
+      "category": "ONE OF: CREATIVE, SOCIAL_IMPACT, ENTREPRENEURIAL, RESEARCH, TECHNICAL, LEADERSHIP",
       "feasibilityScore": 85,
       "matchingPercent": 92,
       "timeEstimate": "4-6 months",
-      "uniqueness": "HIGH|MEDIUM|LOW",
+      "uniqueness": "HIGH, MEDIUM, or LOW",
       "impactMetrics": ["Specific metric 1", "Specific metric 2", "Specific metric 3"]
     }
   ]
-}`;
+}
+
+IMPORTANT: category must be EXACTLY ONE of these values: CREATIVE, SOCIAL_IMPACT, ENTREPRENEURIAL, RESEARCH, TECHNICAL, LEADERSHIP
+Do not combine multiple categories - choose the most fitting single category.`;
   }
 
   private validateAndEnhance(
     ideas: any[],
     profile: UserProfile
   ): GeneratedIdea[] {
+    const validCategories = ['CREATIVE', 'SOCIAL_IMPACT', 'ENTREPRENEURIAL', 'RESEARCH', 'TECHNICAL', 'LEADERSHIP'];
+
     return ideas
-      .map((idea, index) => ({
-        id: idea.id || `idea_${Date.now()}_${index}`,
-        title: idea.title || 'Untitled Project',
-        description: idea.description || 'No description provided',
-        category: idea.category || 'SOCIAL_IMPACT',
-        feasibilityScore: this.calculateFeasibility(idea, profile),
-        matchingPercent: idea.matchingPercent || 75,
-        timeEstimate: idea.timeEstimate || '4-6 months',
-        uniqueness: idea.uniqueness || 'MEDIUM',
-        impactMetrics: Array.isArray(idea.impactMetrics)
-          ? idea.impactMetrics.slice(0, 3)
-          : [],
-      }))
+      .map((idea, index) => {
+        // Parse category - handle cases where AI returns multiple categories separated by |
+        let category = idea.category || 'SOCIAL_IMPACT';
+        if (typeof category === 'string' && category.includes('|')) {
+          // Take the first valid category
+          const categories = category.split('|').map(c => c.trim());
+          category = categories.find(c => validCategories.includes(c)) || 'SOCIAL_IMPACT';
+        }
+        // Ensure category is valid
+        if (!validCategories.includes(category)) {
+          category = 'SOCIAL_IMPACT';
+        }
+
+        return {
+          id: idea.id || `idea_${Date.now()}_${index}`,
+          title: idea.title || 'Untitled Project',
+          description: idea.description || 'No description provided',
+          category: category as 'CREATIVE' | 'SOCIAL_IMPACT' | 'ENTREPRENEURIAL' | 'RESEARCH' | 'TECHNICAL' | 'LEADERSHIP',
+          feasibilityScore: this.calculateFeasibility(idea, profile),
+          matchingPercent: idea.matchingPercent || 75,
+          timeEstimate: idea.timeEstimate || '4-6 months',
+          uniqueness: idea.uniqueness || 'MEDIUM',
+          impactMetrics: Array.isArray(idea.impactMetrics)
+            ? idea.impactMetrics.slice(0, 3)
+            : [],
+        };
+      })
       .slice(0, 10);
   }
 
