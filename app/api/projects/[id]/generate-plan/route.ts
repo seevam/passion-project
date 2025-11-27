@@ -69,6 +69,7 @@ export async function POST(
             description: task.description,
             priority: task.priority,
             estimatedHours: Math.round(task.estimatedHours),
+            orderIndex: task.orderIndex,
             completed: false,
           },
         });

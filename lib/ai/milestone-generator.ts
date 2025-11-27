@@ -13,6 +13,7 @@ export interface GeneratedTask {
   description: string;
   priority: 'low' | 'medium' | 'high';
   estimatedHours: number;
+  orderIndex: number;
 }
 
 interface ProjectContext {
@@ -116,8 +117,9 @@ IMPORTANT:
 - First milestone should focus on planning, research, and skill-building
 - Middle milestones should focus on building/creating core components
 - Final milestone should include testing, launch, and reflection
-- Tasks within each milestone should flow logically
+- Tasks within each milestone should flow logically and be numbered sequentially
 - Prioritize tasks (high = critical path, medium = important, low = nice-to-have)
+- Order tasks so foundational work comes first, then building, then finishing touches
 
 Return in this JSON format:
 {
@@ -132,7 +134,8 @@ Return in this JSON format:
           "title": "Specific, action-oriented task title",
           "description": "More details about what to do and how to approach it",
           "priority": "high",
-          "estimatedHours": 2
+          "estimatedHours": 2,
+          "orderIndex": 1
         }
       ]
     }
@@ -151,7 +154,7 @@ Return in this JSON format:
           Math.min(milestone.estimatedDays || 14, 90)
         ),
         tasks: (milestone.tasks || [])
-          .map((task: any) => ({
+          .map((task: any, taskIndex: number) => ({
             title: task.title || 'Untitled Task',
             description: task.description || '',
             priority: ['low', 'medium', 'high'].includes(task.priority)
@@ -161,6 +164,7 @@ Return in this JSON format:
               0.5,
               Math.min(task.estimatedHours || 2, 20)
             ),
+            orderIndex: task.orderIndex || taskIndex + 1,
           }))
           .slice(0, 8),
       }))

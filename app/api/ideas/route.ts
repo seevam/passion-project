@@ -27,9 +27,10 @@ export async function GET() {
 }
 
 // POST /api/ideas - Generate new project ideas
-export async function POST() {
+export async function POST(req: Request) {
   try {
     const user = await requireAuth();
+    const body = await req.json().catch(() => ({})); // Get ratings if provided
 
     // Get user profile
     const profile = await db.userProfile.findUnique({
@@ -45,7 +46,7 @@ export async function POST() {
 
     // Generate ideas using AI
     const ideaGenerator = new IdeaGenerator();
-    const generatedIdeas = await ideaGenerator.generateIdeas(profile);
+    const generatedIdeas = await ideaGenerator.generateIdeas(profile, body.ratings);
 
     // Save generated ideas to database
     const savedIdeas = await Promise.all(

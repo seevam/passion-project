@@ -31,6 +31,14 @@ export async function POST(
     // Validate input
     const validated = CreateTaskSchema.parse(body);
 
+    // Get the current max orderIndex for tasks in this project
+    const maxOrderTask = await db.task.findFirst({
+      where: { projectId: id },
+      orderBy: { orderIndex: 'desc' },
+      select: { orderIndex: true },
+    });
+    const nextOrderIndex = (maxOrderTask?.orderIndex ?? 0) + 1;
+
     // Create task
     const task = await db.task.create({
       data: {
@@ -39,6 +47,7 @@ export async function POST(
         description: validated.description || null,
         estimatedHours: validated.estimatedHours || null,
         priority: validated.priority || 'medium',
+        orderIndex: nextOrderIndex,
       },
     });
 

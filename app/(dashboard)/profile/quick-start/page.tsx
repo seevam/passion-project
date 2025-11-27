@@ -54,20 +54,51 @@ const COMMON_ACTIVITIES = [
   'Theater',
 ];
 
-const SUBJECTS = [
-  'Math',
-  'Science',
-  'English',
-  'History',
-  'Computer Science',
-  'Art',
-  'Music',
-  'Languages',
+// Domain hierarchy for two-step subject selection
+const SUBJECT_DOMAINS = [
+  {
+    id: 'stem',
+    label: 'STEM & Technology',
+    icon: '🔬',
+    subjects: ['Math', 'Science', 'Computer Science', 'Engineering', 'Physics', 'Chemistry', 'Biology'],
+  },
+  {
+    id: 'arts',
+    label: 'Arts & Creative',
+    icon: '🎨',
+    subjects: ['Art', 'Music', 'Design', 'Theater', 'Film', 'Photography', 'Creative Writing'],
+  },
+  {
+    id: 'humanities',
+    label: 'Humanities & Languages',
+    icon: '📚',
+    subjects: ['English', 'History', 'Languages', 'Philosophy', 'Literature', 'Social Studies'],
+  },
+  {
+    id: 'social',
+    label: 'Social Sciences',
+    icon: '🌍',
+    subjects: ['Psychology', 'Sociology', 'Economics', 'Political Science', 'Anthropology', 'Geography'],
+  },
+  {
+    id: 'business',
+    label: 'Business & Leadership',
+    icon: '💼',
+    subjects: ['Business', 'Entrepreneurship', 'Marketing', 'Finance', 'Management', 'Accounting'],
+  },
+  {
+    id: 'health',
+    label: 'Health & Wellness',
+    icon: '⚕️',
+    subjects: ['Health', 'Physical Education', 'Nutrition', 'Medicine', 'Nursing', 'Sports Science'],
+  },
 ];
 
 export default function QuickStartPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
+  const [subjectSubstep, setSubjectSubstep] = useState(1); // 1 = domains, 2 = subjects
+  const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<Partial<QuickStartData>>({
     currentActivities: [],
@@ -79,15 +110,50 @@ export default function QuickStartPage() {
   const progress = (step / totalSteps) * 100;
 
   const handleNext = () => {
+    // Handle substeps in step 3
+    if (step === 3 && subjectSubstep === 1) {
+      if (selectedDomains.length > 0) {
+        setSubjectSubstep(2);
+      } else {
+        alert('Please select at least one domain');
+      }
+      return;
+    }
+
     if (step < totalSteps) {
       setStep(step + 1);
+      if (step + 1 === 3) {
+        setSubjectSubstep(1); // Reset to substep 1 when entering step 3
+      }
     }
   };
 
   const handleBack = () => {
+    // Handle substeps in step 3
+    if (step === 3 && subjectSubstep === 2) {
+      setSubjectSubstep(1);
+      return;
+    }
+
     if (step > 1) {
       setStep(step - 1);
     }
+  };
+
+  const toggleDomain = (domainId: string) => {
+    setSelectedDomains((prev) =>
+      prev.includes(domainId)
+        ? prev.filter((d) => d !== domainId)
+        : [...prev, domainId]
+    );
+  };
+
+  // Get available subjects based on selected domains
+  const getAvailableSubjects = () => {
+    if (selectedDomains.length === 0) return [];
+    return SUBJECT_DOMAINS
+      .filter((domain) => selectedDomains.includes(domain.id))
+      .flatMap((domain) => domain.subjects);
   };
 
   const handleSubmit = async () => {
@@ -293,17 +359,51 @@ export default function QuickStartPage() {
             </div>
           )}
 
-          {step === 3 && (
+          {step === 3 && subjectSubstep === 1 && (
+            <div className="space-y-6">
+              <div>
+                <CardTitle className="mb-2">Academic Interests</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  First, select the broader domains you're interested in
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {SUBJECT_DOMAINS.map((domain) => {
+                  const isSelected = selectedDomains.includes(domain.id);
+                  return (
+                    <button
+                      key={domain.id}
+                      onClick={() => toggleDomain(domain.id)}
+                      className={`rounded-xl border-2 p-4 text-left transition-all ${
+                        isSelected
+                          ? 'border-primary-500 bg-primary-50 text-primary-700'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="mb-2 text-3xl">{domain.icon}</div>
+                      <div className="font-semibold">{domain.label}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {domain.subjects.slice(0, 3).join(', ')}...
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {step === 3 && subjectSubstep === 2 && (
             <div className="space-y-6">
               <div>
                 <CardTitle className="mb-2">Favorite Subjects</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Select up to 5 subjects you enjoy most
+                  Now select up to 5 specific subjects from your chosen domains ({formData.favoriteSubjects?.length || 0}/5 selected)
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                {SUBJECTS.map((subject) => {
+                {getAvailableSubjects().map((subject) => {
                   const isSelected =
                     formData.favoriteSubjects?.includes(subject);
                   const isDisabled =
@@ -314,7 +414,7 @@ export default function QuickStartPage() {
                       key={subject}
                       onClick={() => toggleSubject(subject)}
                       disabled={isDisabled}
-                      className={`rounded-xl border-2 px-4 py-3 text-left font-semibold transition-all disabled:opacity-50 ${
+                      className={`rounded-xl border-2 px-4 py-3 text-left font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                         isSelected
                           ? 'border-primary-500 bg-primary-50 text-primary-700'
                           : 'border-gray-200 hover:border-gray-300'

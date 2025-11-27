@@ -14,8 +14,8 @@ export interface GeneratedIdea {
 }
 
 export class IdeaGenerator {
-  async generateIdeas(profile: UserProfile): Promise<GeneratedIdea[]> {
-    const prompt = this.buildPrompt(profile);
+  async generateIdeas(profile: UserProfile, ratings?: Record<number, number>): Promise<GeneratedIdea[]> {
+    const prompt = this.buildPrompt(profile, ratings);
 
     try {
       const completion = await openai.chat.completions.create({
@@ -75,12 +75,39 @@ CRITICAL: Projects must be:
 ✓ Build perseverance and grit`;
   }
 
-  private buildPrompt(profile: UserProfile): string {
+  private buildPrompt(profile: UserProfile, ratings?: Record<number, number>): string {
     const topValues = Array.isArray(profile.topValues) ? profile.topValues.join(', ') : '';
     const problemFocus = Array.isArray(profile.problemFocus) ? profile.problemFocus.join(', ') : '';
     const currentActivities = Array.isArray(profile.currentActivities) ? profile.currentActivities.join(', ') : '';
     const favoriteSubjects = Array.isArray(profile.favoriteSubjects) ? profile.favoriteSubjects.join(', ') : '';
     const careerClusters = Array.isArray(profile.careerClusters) ? profile.careerClusters.join(', ') : '';
+
+    const sampleIdeas = [
+      { title: 'Local Environmental Impact Study', category: 'RESEARCH' },
+      { title: 'Mobile App for Student Mental Health', category: 'TECHNICAL' },
+      { title: 'Community Art Installation Project', category: 'CREATIVE' },
+      { title: 'Youth-Led Social Enterprise', category: 'ENTREPRENEURIAL' },
+      { title: 'Tutoring Program for Underserved Students', category: 'SOCIAL_IMPACT' },
+    ];
+
+    let ratingsSection = '';
+    if (ratings && Object.keys(ratings).length > 0) {
+      ratingsSection = `\n\nUSER PREFERENCES FROM SAMPLE IDEAS (1-10 scale):
+The student rated their interest in sample project ideas:
+${Object.entries(ratings).map(([index, rating]) =>
+  `- "${sampleIdeas[parseInt(index)].title}" (${sampleIdeas[parseInt(index)].category}): ${rating}/10`
+).join('\n')}
+
+Use these ratings to understand their preferences:
+- Higher rated ideas (7-10): Generate more ideas similar to these
+- Medium rated ideas (4-6): Consider these as backup inspiration
+- Lower rated ideas (1-3): Avoid similar concepts
+
+Pay special attention to:
+- Which categories they rated highly
+- The types of projects that excited them most
+- The balance between technical, creative, research, and social impact work`;
+    }
 
     return `Generate 8 personalized project ideas for this high school student:
 
@@ -159,7 +186,7 @@ Return in this JSON format:
 }
 
 IMPORTANT: category must be EXACTLY ONE of these values: CREATIVE, SOCIAL_IMPACT, ENTREPRENEURIAL, RESEARCH, TECHNICAL, LEADERSHIP
-Do not combine multiple categories - choose the most fitting single category.`;
+Do not combine multiple categories - choose the most fitting single category.${ratingsSection}`;
   }
 
   private validateAndEnhance(
