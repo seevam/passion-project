@@ -28,6 +28,12 @@ interface ProjectIdea {
   status: string;
 }
 
+interface SampleIdea {
+  title: string;
+  description: string;
+  category: string;
+}
+
 const CATEGORY_COLORS: Record<string, string> = {
   CREATIVE: 'bg-purple-100 text-purple-700',
   SOCIAL_IMPACT: 'bg-green-100 text-green-700',
@@ -37,12 +43,44 @@ const CATEGORY_COLORS: Record<string, string> = {
   LEADERSHIP: 'bg-orange-100 text-orange-700',
 };
 
+const SAMPLE_IDEAS_FOR_RATING: SampleIdea[] = [
+  {
+    title: 'Local Environmental Impact Study',
+    description: 'Research and document the environmental health of your local community, including air quality, water sources, and green spaces.',
+    category: 'RESEARCH',
+  },
+  {
+    title: 'Mobile App for Student Mental Health',
+    description: 'Build a mobile app that provides mental health resources, mood tracking, and peer support for high school students.',
+    category: 'TECHNICAL',
+  },
+  {
+    title: 'Community Art Installation Project',
+    description: 'Create a collaborative public art installation that brings your community together and addresses a social theme.',
+    category: 'CREATIVE',
+  },
+  {
+    title: 'Youth-Led Social Enterprise',
+    description: 'Start a small business or social enterprise that solves a local problem while teaching entrepreneurial skills to peers.',
+    category: 'ENTREPRENEURIAL',
+  },
+  {
+    title: 'Tutoring Program for Underserved Students',
+    description: 'Organize and lead a free tutoring program for younger students in subjects you excel at, focusing on underserved communities.',
+    category: 'SOCIAL_IMPACT',
+  },
+];
+
 export default function IdeasPage() {
   const router = useRouter();
   const [ideas, setIdeas] = useState<ProjectIdea[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [filter, setFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [sampleIdeas, setSampleIdeas] = useState<SampleIdea[]>([]);
+  const [ratings, setRatings] = useState<Record<number, number>>({});
 
   useEffect(() => {
     loadIdeas();
@@ -62,11 +100,21 @@ export default function IdeasPage() {
     }
   };
 
+  const handleGenerateClick = () => {
+    // Show rating modal first
+    setSampleIdeas(SAMPLE_IDEAS_FOR_RATING);
+    setRatings({});
+    setShowRatingModal(true);
+  };
+
   const generateNewIdeas = async () => {
     setIsGenerating(true);
+    setShowRatingModal(false);
     try {
       const response = await fetch('/api/ideas', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ratings }),
       });
 
       if (response.ok) {
@@ -81,6 +129,14 @@ export default function IdeasPage() {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const setRating = (ideaIndex: number, rating: number) => {
+    setRatings((prev) => ({ ...prev, [ideaIndex]: rating }));
+  };
+
+  const allIdeasRated = () => {
+    return sampleIdeas.every((_, index) => ratings[index] !== undefined);
   };
 
   const updateIdeaStatus = async (ideaId: string, status: string) => {
@@ -109,10 +165,16 @@ export default function IdeasPage() {
   };
 
   const filteredIdeas = ideas.filter((idea) => {
-    if (filter === 'all') return idea.status === 'suggested';
-    if (filter === 'saved') return idea.status === 'saved';
-    if (filter === 'rejected') return idea.status === 'rejected';
-    return true;
+    // Status filter
+    let statusMatch = false;
+    if (filter === 'all') statusMatch = idea.status === 'suggested';
+    else if (filter === 'saved') statusMatch = idea.status === 'saved';
+    else if (filter === 'rejected') statusMatch = idea.status === 'rejected';
+
+    // Category filter
+    const categoryMatch = categoryFilter === 'all' || idea.category === categoryFilter;
+
+    return statusMatch && categoryMatch;
   });
 
   if (isLoading) {
@@ -140,7 +202,7 @@ export default function IdeasPage() {
         </div>
 
         <Button
-          onClick={generateNewIdeas}
+          onClick={handleGenerateClick}
           disabled={isGenerating}
           size="lg"
           className="shadow-xl"
@@ -159,25 +221,124 @@ export default function IdeasPage() {
         </Button>
       </div>
 
+      {/* Rating Modal */}
+      {showRatingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto m-4">
+            <CardHeader>
+              <CardTitle className="text-2xl">Rate Your Interest</CardTitle>
+              <p className="text-muted-foreground">
+                To help us generate ideas you'll love, please rate how interested you are in each of these project ideas on a scale of 1-10.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {sampleIdeas.map((idea, index) => (
+                <div key={index} className="space-y-3 rounded-xl border-2 border-gray-200 p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <Badge className={CATEGORY_COLORS[idea.category] || 'bg-gray-100 text-gray-700'}>
+                        {idea.category.replace('_', ' ')}
+                      </Badge>
+                      <h3 className="mt-2 font-semibold text-lg">{idea.title}</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">{idea.description}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="mb-2 text-sm font-semibold">How interested are you? (1 = Not interested, 10 = Very interested)</p>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((rating) => (
+                        <button
+                          key={rating}
+                          onClick={() => setRating(index, rating)}
+                          className={`flex h-10 w-10 items-center justify-center rounded-lg border-2 font-semibold transition-all ${
+                            ratings[index] === rating
+                              ? 'border-primary-500 bg-primary-500 text-white'
+                              : 'border-gray-300 hover:border-primary-300 hover:bg-primary-50'
+                          }`}
+                        >
+                          {rating}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowRatingModal(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={generateNewIdeas}
+                  disabled={!allIdeasRated()}
+                  className="flex-1"
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Generate Personalized Ideas
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Filter Tabs */}
-      <div className="flex space-x-2">
-        {[
-          { id: 'all', label: 'New Ideas', count: ideas.filter(i => i.status === 'suggested').length },
-          { id: 'saved', label: 'Saved', count: ideas.filter(i => i.status === 'saved').length },
-          { id: 'rejected', label: 'Passed', count: ideas.filter(i => i.status === 'rejected').length },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setFilter(tab.id)}
-            className={`rounded-xl px-6 py-3 font-semibold transition-all ${
-              filter === tab.id
-                ? 'bg-primary-500 text-white shadow-duo'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            {tab.label} ({tab.count})
-          </button>
-        ))}
+      <div className="space-y-4">
+        {/* Status Filter */}
+        <div className="flex space-x-2">
+          {[
+            { id: 'all', label: 'New Ideas', count: ideas.filter(i => i.status === 'suggested').length },
+            { id: 'saved', label: 'Saved', count: ideas.filter(i => i.status === 'saved').length },
+            { id: 'rejected', label: 'Passed', count: ideas.filter(i => i.status === 'rejected').length },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setFilter(tab.id)}
+              className={`rounded-xl px-6 py-3 font-semibold transition-all ${
+                filter === tab.id
+                  ? 'bg-primary-500 text-white shadow-duo'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {tab.label} ({tab.count})
+            </button>
+          ))}
+        </div>
+
+        {/* Category Filter */}
+        <div>
+          <p className="mb-2 text-sm font-semibold text-gray-600">Filter by category:</p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: 'all', label: 'All Categories' },
+              { id: 'CREATIVE', label: 'Creative' },
+              { id: 'SOCIAL_IMPACT', label: 'Social Impact' },
+              { id: 'ENTREPRENEURIAL', label: 'Entrepreneurial' },
+              { id: 'RESEARCH', label: 'Research' },
+              { id: 'TECHNICAL', label: 'Technical' },
+              { id: 'LEADERSHIP', label: 'Leadership' },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setCategoryFilter(cat.id)}
+                className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+                  categoryFilter === cat.id
+                    ? cat.id === 'all'
+                      ? 'bg-gray-800 text-white'
+                      : `${CATEGORY_COLORS[cat.id]} ring-2 ring-offset-2`
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Ideas Grid */}

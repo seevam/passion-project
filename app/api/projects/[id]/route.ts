@@ -22,7 +22,7 @@ export async function GET(
           orderBy: { orderIndex: 'asc' },
         },
         tasks: {
-          orderBy: { createdAt: 'desc' },
+          orderBy: { orderIndex: 'asc' },
         },
         checkIns: {
           orderBy: { createdAt: 'desc' },
