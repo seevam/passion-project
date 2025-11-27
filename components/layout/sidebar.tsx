@@ -14,7 +14,6 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
-  Database,
 } from 'lucide-react';
 import { useSidebar } from './sidebar-provider';
 
@@ -53,11 +52,6 @@ const navigation = [
     name: 'Gallery',
     href: '/gallery',
     icon: Users,
-  },
-  {
-    name: 'Admin Import',
-    href: '/admin/import',
-    icon: Database,
   },
   {
     name: 'Settings',
