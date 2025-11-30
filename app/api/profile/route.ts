@@ -24,26 +24,28 @@ export async function GET() {
   }
 }
 
-// POST /api/profile - Create profile (if doesn't exist)
+// POST /api/profile - Create or update profile
 export async function POST(req: Request) {
   try {
     const user = await requireAuth();
     const body = await req.json();
 
-    // Check if profile already exists
-    const existing = await db.userProfile.findUnique({
+    // Use upsert to create or update profile
+    const profile = await db.userProfile.upsert({
       where: { userId: user.id },
-    });
-
-    if (existing) {
-      return NextResponse.json(
-        { error: 'Profile already exists' },
-        { status: 400 }
-      );
-    }
-
-    const profile = await db.userProfile.create({
-      data: {
+      update: {
+        gradeLevel: body.gradeLevel,
+        collegeTimeline: body.collegeTimeline,
+        timeCommitment: body.timeCommitment,
+        currentActivities: body.currentActivities || [],
+        favoriteSubjects: body.favoriteSubjects || [],
+        skillsConfidence: body.skillsConfidence || {},
+        workStyle: body.workStyle,
+        impactPreference: body.impactPreference,
+        challengeLevel: body.challengeLevel,
+        completionPercent: 20, // Completed quick start (step 1 of 6)
+      },
+      create: {
         userId: user.id,
         gradeLevel: body.gradeLevel,
         collegeTimeline: body.collegeTimeline,
