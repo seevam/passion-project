@@ -545,7 +545,8 @@ export default function QuickStartPage() {
                   !formData.collegeTimeline ||
                   !formData.timeCommitment)) ||
               (step === 2 && !formData.currentActivities?.length) ||
-              (step === 3 && !formData.favoriteSubjects?.length)
+              (step === 3 && subjectSubstep === 1 && !selectedDomains.length) ||
+              (step === 3 && subjectSubstep === 2 && !formData.favoriteSubjects?.length)
             }
             className="w-32"
           >
