@@ -104,6 +104,7 @@ export default function QuickStartPage() {
     currentActivities: [],
     favoriteSubjects: [],
     skillsConfidence: {},
+    challengeLevel: 5,
   });
 
   const totalSteps = 4;
