@@ -105,6 +105,8 @@ export default function QuickStartPage() {
     favoriteSubjects: [],
     skillsConfidence: {},
     challengeLevel: 5,
+    workStyle: 'solo',
+    impactPreference: 'community',
   });
 
   const totalSteps = 4;
