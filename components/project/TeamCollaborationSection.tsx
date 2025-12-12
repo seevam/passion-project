@@ -64,21 +64,22 @@ export default function TeamCollaborationSection({
   const fetchTeamData = async () => {
     setIsLoading(true);
     try {
-      const [membersRes, requestsRes] = await Promise.all([
-        fetch(`/api/projects/${projectId}/members`),
-        isOwner || isCoLead
-          ? fetch(`/api/projects/${projectId}/collaboration-requests`)
-          : Promise.resolve({ ok: false }),
-      ]);
-
+      // Fetch members
+      const membersRes = await fetch(`/api/projects/${projectId}/members`);
       if (membersRes.ok) {
         const membersData = await membersRes.json();
         setMembers(membersData.members || []);
       }
 
-      if (requestsRes.ok) {
-        const requestsData = await requestsRes.json();
-        setRequests(requestsData.requests || []);
+      // Fetch requests only if owner or co-lead
+      if (isOwner || isCoLead) {
+        const requestsRes = await fetch(
+          `/api/projects/${projectId}/collaboration-requests`
+        );
+        if (requestsRes.ok) {
+          const requestsData = await requestsRes.json();
+          setRequests(requestsData.requests || []);
+        }
       }
     } catch (error) {
       console.error('Error fetching team data:', error);
