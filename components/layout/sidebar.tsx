@@ -14,6 +14,7 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  UserPlus,
 } from 'lucide-react';
 import { useSidebar } from './sidebar-provider';
 
@@ -37,6 +38,11 @@ const navigation = [
     name: 'My Projects',
     href: '/projects',
     icon: FolderKanban,
+  },
+  {
+    name: 'Find Collaborations',
+    href: '/discover',
+    icon: UserPlus,
   },
   {
     name: 'AI Mentor',
