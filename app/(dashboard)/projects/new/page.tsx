@@ -39,6 +39,11 @@ function NewProjectForm() {
     description: '',
     category: '',
     ideaSourceId: ideaId || '',
+    idealTeamSize: 'SOLO' as 'SOLO' | 'DUO' | 'SMALL_TEAM' | 'LARGE_TEAM',
+    openForCollaboration: false,
+    maxTeamSize: 1,
+    skillsNeeded: [] as string[],
+    collaborationDesc: '',
   });
 
   // If coming from an idea, load idea details
@@ -74,7 +79,7 @@ function NewProjectForm() {
   };
 
   const handleNext = () => {
-    if (step < 2) {
+    if (step < 3) {
       setStep(step + 1);
     }
   };
@@ -83,6 +88,20 @@ function NewProjectForm() {
     if (step > 1) {
       setStep(step - 1);
     }
+  };
+
+  const addSkill = (skill: string) => {
+    if (skill && !formData.skillsNeeded.includes(skill)) {
+      updateFormData({
+        skillsNeeded: [...formData.skillsNeeded, skill],
+      });
+    }
+  };
+
+  const removeSkill = (skill: string) => {
+    updateFormData({
+      skillsNeeded: formData.skillsNeeded.filter((s) => s !== skill),
+    });
   };
 
   const handleSubmit = async () => {
@@ -109,8 +128,28 @@ function NewProjectForm() {
     }
   };
 
-  const totalSteps = 2;
+  const totalSteps = 3;
   const progress = (step / totalSteps) * 100;
+
+  const TEAM_SIZES = [
+    { value: 'SOLO', label: 'Solo', icon: '👤', desc: 'Work independently' },
+    { value: 'DUO', label: 'Duo', icon: '👥', desc: '2 people' },
+    { value: 'SMALL_TEAM', label: 'Small Team', icon: '👨‍👩‍👦', desc: '3-4 people' },
+    { value: 'LARGE_TEAM', label: 'Large Team', icon: '👨‍👩‍👦‍👦', desc: '5+ people' },
+  ];
+
+  const COMMON_SKILLS = [
+    'Coding',
+    'Design',
+    'Writing',
+    'Research',
+    'Marketing',
+    'Video Editing',
+    'Photography',
+    'Public Speaking',
+    'Leadership',
+    'Organization',
+  ];
 
   if (isLoading) {
     return (
@@ -223,6 +262,139 @@ function NewProjectForm() {
           {step === 2 && (
             <div className="space-y-6">
               <div>
+                <CardTitle className="mb-6">Team Configuration</CardTitle>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label>
+                    Ideal Team Size <span className="text-red-500">*</span>
+                  </Label>
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    How many people do you envision working on this?
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                    {TEAM_SIZES.map((size) => (
+                      <button
+                        key={size.value}
+                        type="button"
+                        onClick={() => {
+                          updateFormData({
+                            idealTeamSize: size.value as any,
+                            maxTeamSize: size.value === 'SOLO' ? 1 :
+                                        size.value === 'DUO' ? 2 :
+                                        size.value === 'SMALL_TEAM' ? 4 : 8,
+                          });
+                        }}
+                        className={`rounded-xl border-2 p-4 text-center transition-all ${
+                          formData.idealTeamSize === size.value
+                            ? 'border-primary-500 bg-primary-50'
+                            : 'border-gray-300 hover:border-primary-300'
+                        }`}
+                      >
+                        <div className="text-3xl mb-2">{size.icon}</div>
+                        <div className="font-semibold">{size.label}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {size.desc}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {formData.idealTeamSize !== 'SOLO' && (
+                  <>
+                    <div className="rounded-lg border-2 border-primary-200 bg-primary-50/30 p-4">
+                      <div className="flex items-start space-x-3">
+                        <input
+                          type="checkbox"
+                          id="openForCollaboration"
+                          checked={formData.openForCollaboration}
+                          onChange={(e) =>
+                            updateFormData({
+                              openForCollaboration: e.target.checked,
+                            })
+                          }
+                          className="mt-1 h-4 w-4 rounded border-gray-300"
+                        />
+                        <div className="flex-1">
+                          <label
+                            htmlFor="openForCollaboration"
+                            className="font-semibold cursor-pointer"
+                          >
+                            Open for Collaboration
+                          </label>
+                          <p className="text-sm text-muted-foreground">
+                            Allow other students to discover and request to join
+                            your project
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {formData.openForCollaboration && (
+                      <>
+                        <div>
+                          <Label htmlFor="collaborationDesc">
+                            Collaboration Description
+                          </Label>
+                          <p className="mb-2 text-sm text-muted-foreground">
+                            Tell potential collaborators what you're looking for
+                          </p>
+                          <textarea
+                            id="collaborationDesc"
+                            value={formData.collaborationDesc}
+                            onChange={(e) =>
+                              updateFormData({
+                                collaborationDesc: e.target.value,
+                              })
+                            }
+                            placeholder="We're looking for team members who are passionate about..."
+                            rows={3}
+                            maxLength={1000}
+                            className="w-full rounded-xl border-2 border-gray-300 bg-white p-4 font-medium transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                          />
+                        </div>
+
+                        <div>
+                          <Label>Skills Needed</Label>
+                          <p className="mb-2 text-sm text-muted-foreground">
+                            What skills are you looking for in collaborators?
+                          </p>
+                          <div className="mb-3 flex flex-wrap gap-2">
+                            {COMMON_SKILLS.map((skill) => (
+                              <button
+                                key={skill}
+                                type="button"
+                                onClick={() => {
+                                  if (formData.skillsNeeded.includes(skill)) {
+                                    removeSkill(skill);
+                                  } else {
+                                    addSkill(skill);
+                                  }
+                                }}
+                                className={`rounded-full px-3 py-1 text-sm transition-colors ${
+                                  formData.skillsNeeded.includes(skill)
+                                    ? 'bg-primary-500 text-white'
+                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}
+                              >
+                                {skill}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-6">
+              <div>
                 <CardTitle className="mb-2">Review & Create</CardTitle>
                 <p className="text-sm text-muted-foreground">
                   Review your project details before creating
@@ -261,6 +433,35 @@ function NewProjectForm() {
                   </Label>
                   <p className="mt-1 text-gray-900">{formData.description}</p>
                 </div>
+
+                <div>
+                  <Label className="text-sm text-muted-foreground">
+                    Team Configuration
+                  </Label>
+                  <p className="mt-1 font-semibold text-gray-900">
+                    {TEAM_SIZES.find((t) => t.value === formData.idealTeamSize)
+                      ?.icon}{' '}
+                    {TEAM_SIZES.find((t) => t.value === formData.idealTeamSize)
+                      ?.label}
+                    {formData.openForCollaboration && (
+                      <span className="ml-2 rounded-full bg-green-100 px-2 py-1 text-xs text-green-700">
+                        Open for Collaboration
+                      </span>
+                    )}
+                  </p>
+                  {formData.openForCollaboration && formData.skillsNeeded.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {formData.skillsNeeded.map((skill) => (
+                        <span
+                          key={skill}
+                          className="rounded-full bg-primary-100 px-2 py-1 text-xs text-primary-700"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <Card className="border-2 border-accent-200 bg-gradient-to-br from-accent-50 to-white">
@@ -278,6 +479,9 @@ function NewProjectForm() {
                       <li>✓ Log your work and earn XP</li>
                       <li>✓ Get AI mentor guidance</li>
                       <li>✓ Build your portfolio</li>
+                      {formData.openForCollaboration && (
+                        <li>✓ Collaborate with other students</li>
+                      )}
                     </ul>
                   </div>
                 </CardContent>
@@ -302,7 +506,8 @@ function NewProjectForm() {
           <Button
             onClick={handleNext}
             disabled={
-              !formData.title || !formData.description || !formData.category
+              (step === 1 && (!formData.title || !formData.description || !formData.category)) ||
+              (step === 2 && !formData.idealTeamSize)
             }
             className="w-32"
           >

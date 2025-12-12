@@ -22,6 +22,13 @@ export const CreateProjectSchema = z.object({
   ]),
 
   ideaSourceId: z.string().cuid().optional(),
+
+  // Team & Collaboration
+  idealTeamSize: z.enum(['SOLO', 'DUO', 'SMALL_TEAM', 'LARGE_TEAM']).default('SOLO'),
+  openForCollaboration: z.boolean().default(false),
+  maxTeamSize: z.number().int().min(1).max(20).default(1),
+  skillsNeeded: z.array(z.string()).default([]),
+  collaborationDesc: z.string().max(1000).optional(),
 });
 
 export const UpdateProjectSchema = CreateProjectSchema.partial();
@@ -38,6 +45,11 @@ export const CreateTaskSchema = z.object({
   description: z.string().max(1000).optional(),
   estimatedHours: z.number().int().min(0).max(1000).optional(),
   priority: z.enum(['low', 'medium', 'high']).default('medium'),
+  assignedToId: z.string().cuid().optional(),
+});
+
+export const AssignTaskSchema = z.object({
+  assignedToId: z.string().cuid().nullable(),
 });
 
 export const ProjectCheckInSchema = z.object({
