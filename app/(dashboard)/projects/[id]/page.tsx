@@ -29,7 +29,9 @@ import {
   MessageSquare,
   FileText,
   Sparkles,
+  Users,
 } from 'lucide-react';
+import TeamCollaborationSection from '@/components/project/TeamCollaborationSection';
 
 interface Project {
   id: string;
@@ -41,6 +43,10 @@ interface Project {
   hoursLogged: number;
   currentStreak: number;
   lastWorkedAt: string | null;
+  userId: string;
+  openForCollaboration: boolean;
+  currentTeamSize: number;
+  maxTeamSize: number;
   milestones: Milestone[];
   tasks: Task[];
   checkIns: CheckIn[];
@@ -102,6 +108,7 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [currentUserId, setCurrentUserId] = useState<string>('');
 
   // New milestone form
   const [showMilestoneForm, setShowMilestoneForm] = useState(false);
@@ -136,6 +143,12 @@ export default function ProjectDetailPage() {
       const data = await response.json();
       if (data.success) {
         setProject(data.project);
+        // Get current user ID from the project or fetch it
+        const userResponse = await fetch('/api/profile');
+        const userData = await userResponse.json();
+        if (userData.success) {
+          setCurrentUserId(userData.user.id);
+        }
       }
     } catch (error) {
       console.error('Error loading project:', error);
@@ -405,10 +418,14 @@ export default function ProjectDetailPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="milestones">Milestones</TabsTrigger>
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
+          <TabsTrigger value="team">
+            <Users className="mr-2 h-4 w-4" />
+            Team
+          </TabsTrigger>
           <TabsTrigger value="checkins">Check-ins</TabsTrigger>
         </TabsList>
 
@@ -735,6 +752,17 @@ export default function ProjectDetailPage() {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="team" className="space-y-4">
+          <TeamCollaborationSection
+            projectId={projectId}
+            isOwner={currentUserId === project?.userId}
+            isCoLead={false}
+            openForCollaboration={project?.openForCollaboration || false}
+            currentTeamSize={project?.currentTeamSize || 1}
+            maxTeamSize={project?.maxTeamSize || 1}
+          />
         </TabsContent>
 
         <TabsContent value="checkins" className="space-y-4">
