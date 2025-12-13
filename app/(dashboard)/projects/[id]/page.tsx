@@ -143,11 +143,11 @@ export default function ProjectDetailPage() {
       const data = await response.json();
       if (data.success) {
         setProject(data.project);
-        // Get current user ID from the project or fetch it
+        // Get current user ID from the profile
         const userResponse = await fetch('/api/profile');
         const userData = await userResponse.json();
-        if (userData.success) {
-          setCurrentUserId(userData.user.id);
+        if (userData.success && userData.profile) {
+          setCurrentUserId(userData.profile.userId);
         }
       }
     } catch (error) {
