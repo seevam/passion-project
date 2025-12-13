@@ -57,29 +57,49 @@ export default function TeamCollaborationSection({
   const [requests, setRequests] = useState<CollaborationRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('[TeamCollaboration] Props:', {
+      projectId,
+      isOwner,
+      isCoLead,
+      openForCollaboration,
+      currentTeamSize,
+      maxTeamSize,
+    });
+  }, [isOwner, isCoLead]);
+
   useEffect(() => {
     fetchTeamData();
-  }, [projectId]);
+  }, [projectId, isOwner, isCoLead]);
 
   const fetchTeamData = async () => {
     setIsLoading(true);
+    console.log('[TeamCollaboration] Fetching team data, isOwner:', isOwner, 'isCoLead:', isCoLead);
     try {
       // Fetch members
       const membersRes = await fetch(`/api/projects/${projectId}/members`);
       if (membersRes.ok) {
         const membersData = await membersRes.json();
+        console.log('[TeamCollaboration] Members fetched:', membersData.members?.length);
         setMembers(membersData.members || []);
       }
 
       // Fetch requests only if owner or co-lead
       if (isOwner || isCoLead) {
+        console.log('[TeamCollaboration] Fetching collaboration requests...');
         const requestsRes = await fetch(
           `/api/projects/${projectId}/collaboration-requests`
         );
         if (requestsRes.ok) {
           const requestsData = await requestsRes.json();
+          console.log('[TeamCollaboration] Requests fetched:', requestsData.requests?.length);
           setRequests(requestsData.requests || []);
+        } else {
+          console.log('[TeamCollaboration] Requests fetch failed:', requestsRes.status);
         }
+      } else {
+        console.log('[TeamCollaboration] Skipping requests fetch (not owner/co-lead)');
       }
     } catch (error) {
       console.error('Error fetching team data:', error);
