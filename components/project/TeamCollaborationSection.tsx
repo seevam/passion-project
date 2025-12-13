@@ -242,17 +242,30 @@ export default function TeamCollaborationSection({
       </Card>
 
       {/* Collaboration Requests - Only visible to owner and co-leads */}
-      {(isOwner || isCoLead) && requests.length > 0 && (
+      {(isOwner || isCoLead) && (
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
               <Mail className="h-5 w-5 text-primary-600" />
               <CardTitle>Collaboration Requests</CardTitle>
-              <Badge>{requests.length}</Badge>
+              {requests.length > 0 && <Badge>{requests.length}</Badge>}
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            {requests.length === 0 ? (
+              <div className="rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 p-8 text-center">
+                <Mail className="mx-auto h-12 w-12 text-gray-400" />
+                <p className="mt-4 text-sm font-medium text-gray-900">
+                  No collaboration requests yet
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {openForCollaboration
+                    ? 'When students request to join, they will appear here'
+                    : 'Open your project for collaboration to receive requests'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
               {requests.map((request) => (
                 <div
                   key={request.id}
@@ -313,6 +326,7 @@ export default function TeamCollaborationSection({
                 </div>
               ))}
             </div>
+            )}
           </CardContent>
         </Card>
       )}
