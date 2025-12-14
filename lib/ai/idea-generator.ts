@@ -32,7 +32,7 @@ export class IdeaGenerator {
             content: prompt,
           },
         ],
-        temperature: 0.9,
+        temperature: 0.7,  // Lowered from 0.9 for better instruction adherence
         max_tokens: 3000,
         response_format: { type: 'json_object' },
       });
@@ -112,8 +112,8 @@ Pay special attention to:
 - The balance between technical, creative, research, and social impact work`;
     }
 
-    return `Generate 8 personalized project ideas for this high school student:
-
+    const promptStart = `Generate 8 personalized project ideas for this high school student.
+${ratingsSection ? '\n' + ratingsSection + '\n\n⚠️ CRITICAL: The user ratings above are the PRIMARY factor in idea generation. Generate ideas that strongly align with their highly-rated categories and avoid their low-rated categories. Other profile factors are secondary to these explicit preferences.\n' : ''}
 STUDENT PROFILE:
 - Grade: ${profile.gradeLevel}
 - Time Available: ${profile.timeCommitment} hours/week
@@ -189,7 +189,9 @@ Return in this JSON format:
 }
 
 IMPORTANT: category must be EXACTLY ONE of these values: CREATIVE, SOCIAL_IMPACT, ENTREPRENEURIAL, RESEARCH, TECHNICAL, LEADERSHIP
-Do not combine multiple categories - choose the most fitting single category.${ratingsSection}`;
+Do not combine multiple categories - choose the most fitting single category.`;
+
+    return promptStart;
   }
 
   private validateAndEnhance(
