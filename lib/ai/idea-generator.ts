@@ -13,10 +13,21 @@ export interface GeneratedIdea {
   impactMetrics: string[];
 }
 
+interface SampleIdeaRef {
+  title: string;
+  category: string;
+  index: number;
+}
+
 export class IdeaGenerator {
-  async generateIdeas(profile: UserProfile, ratings?: Record<number, number>): Promise<GeneratedIdea[]> {
+  async generateIdeas(
+    profile: UserProfile,
+    ratings?: Record<number, number>,
+    sampleIdeas?: SampleIdeaRef[]
+  ): Promise<GeneratedIdea[]> {
     console.log('[IdeaGenerator] Received ratings:', ratings);
-    const prompt = this.buildPrompt(profile, ratings);
+    console.log('[IdeaGenerator] Received sample ideas:', sampleIdeas);
+    const prompt = this.buildPrompt(profile, ratings, sampleIdeas);
     console.log('[IdeaGenerator] Generated prompt includes ratings section:', prompt.includes('USER PREFERENCES FROM SAMPLE IDEAS'));
 
     try {
@@ -77,28 +88,35 @@ CRITICAL: Projects must be:
 ✓ Build perseverance and grit`;
   }
 
-  private buildPrompt(profile: UserProfile, ratings?: Record<number, number>): string {
+  private buildPrompt(
+    profile: UserProfile,
+    ratings?: Record<number, number>,
+    sampleIdeas?: SampleIdeaRef[]
+  ): string {
     const topValues = Array.isArray(profile.topValues) ? profile.topValues.join(', ') : '';
     const problemFocus = Array.isArray(profile.problemFocus) ? profile.problemFocus.join(', ') : '';
     const currentActivities = Array.isArray(profile.currentActivities) ? profile.currentActivities.join(', ') : '';
     const favoriteSubjects = Array.isArray(profile.favoriteSubjects) ? profile.favoriteSubjects.join(', ') : '';
     const careerClusters = Array.isArray(profile.careerClusters) ? profile.careerClusters.join(', ') : '';
 
-    const sampleIdeas = [
+    // Use provided sample ideas or fallback to default
+    const defaultSampleIdeas = [
       { title: 'Local Environmental Impact Study', category: 'RESEARCH' },
       { title: 'Mobile App for Student Mental Health', category: 'TECHNICAL' },
       { title: 'Community Art Installation Project', category: 'CREATIVE' },
       { title: 'Youth-Led Social Enterprise', category: 'ENTREPRENEURIAL' },
       { title: 'Tutoring Program for Underserved Students', category: 'SOCIAL_IMPACT' },
     ];
+    const samples = sampleIdeas || defaultSampleIdeas;
 
     let ratingsSection = '';
     if (ratings && Object.keys(ratings).length > 0) {
       console.log('[IdeaGenerator] Building ratings section with:', ratings);
+      console.log('[IdeaGenerator] Using sample ideas:', samples);
       ratingsSection = `\n\nUSER PREFERENCES FROM SAMPLE IDEAS (1-10 scale):
 The student rated their interest in sample project ideas:
 ${Object.entries(ratings).map(([index, rating]) =>
-  `- "${sampleIdeas[parseInt(index)].title}" (${sampleIdeas[parseInt(index)].category}): ${rating}/10`
+  `- "${samples[parseInt(index)].title}" (${samples[parseInt(index)].category}): ${rating}/10`
 ).join('\n')}
 
 Use these ratings to understand their preferences:

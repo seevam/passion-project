@@ -81,6 +81,7 @@ export default function IdeasPage() {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [sampleIdeas, setSampleIdeas] = useState<SampleIdea[]>([]);
   const [ratings, setRatings] = useState<Record<number, number>>({});
+  const [isLoadingSamples, setIsLoadingSamples] = useState(false);
 
   useEffect(() => {
     loadIdeas();
@@ -100,11 +101,30 @@ export default function IdeasPage() {
     }
   };
 
-  const handleGenerateClick = () => {
-    // Show rating modal first
-    setSampleIdeas(SAMPLE_IDEAS_FOR_RATING);
-    setRatings({});
+  const handleGenerateClick = async () => {
+    // Fetch personalized sample ideas
+    setIsLoadingSamples(true);
     setShowRatingModal(true);
+    setRatings({});
+
+    try {
+      const response = await fetch('/api/ideas/samples');
+      const data = await response.json();
+
+      if (data.success && data.samples) {
+        setSampleIdeas(data.samples);
+      } else {
+        // Fallback to static samples if API fails
+        console.warn('Failed to load personalized samples, using fallback');
+        setSampleIdeas(SAMPLE_IDEAS_FOR_RATING);
+      }
+    } catch (error) {
+      console.error('Error loading sample ideas:', error);
+      // Fallback to static samples
+      setSampleIdeas(SAMPLE_IDEAS_FOR_RATING);
+    } finally {
+      setIsLoadingSamples(false);
+    }
   };
 
   const generateNewIdeas = async () => {
@@ -115,7 +135,14 @@ export default function IdeasPage() {
       const response = await fetch('/api/ideas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ratings }),
+        body: JSON.stringify({
+          ratings,
+          sampleIdeas: sampleIdeas.map((idea, index) => ({
+            title: idea.title,
+            category: idea.category,
+            index,
+          })),
+        }),
       });
 
       if (response.ok) {
@@ -229,11 +256,21 @@ export default function IdeasPage() {
             <CardHeader>
               <CardTitle className="text-2xl">Rate Your Interest</CardTitle>
               <p className="text-muted-foreground">
-                To help us generate ideas you'll love, please rate how interested you are in each of these project ideas on a scale of 1-10.
+                {isLoadingSamples
+                  ? 'Loading personalized project ideas based on your profile...'
+                  : 'To help us generate ideas you\'ll love, please rate how interested you are in each of these project ideas on a scale of 1-10.'
+                }
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
-              {sampleIdeas.map((idea, index) => (
+              {isLoadingSamples ? (
+                <div className="py-12 text-center">
+                  <Sparkles className="mx-auto h-12 w-12 animate-pulse text-primary-500" />
+                  <p className="mt-4 text-muted-foreground">Personalizing samples for you...</p>
+                </div>
+              ) : (
+                <>
+                  {sampleIdeas.map((idea, index) => (
                 <div key={index} className="space-y-3 rounded-xl border-2 border-gray-200 p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -266,7 +303,7 @@ export default function IdeasPage() {
                 </div>
               ))}
 
-              <div className="flex gap-3 pt-4">
+                  <div className="flex gap-3 pt-4">
                 <Button
                   variant="outline"
                   onClick={() => setShowRatingModal(false)}
@@ -279,10 +316,12 @@ export default function IdeasPage() {
                   disabled={!allIdeasRated()}
                   className="flex-1"
                 >
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Generate Personalized Ideas
-                </Button>
-              </div>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Generate Personalized Ideas
+                  </Button>
+                </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
