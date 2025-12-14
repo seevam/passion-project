@@ -108,6 +108,7 @@ export default function IdeasPage() {
   };
 
   const generateNewIdeas = async () => {
+    console.log('[Frontend] Sending ratings to API:', ratings);
     setIsGenerating(true);
     setShowRatingModal(false);
     try {

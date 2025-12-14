@@ -15,7 +15,9 @@ export interface GeneratedIdea {
 
 export class IdeaGenerator {
   async generateIdeas(profile: UserProfile, ratings?: Record<number, number>): Promise<GeneratedIdea[]> {
+    console.log('[IdeaGenerator] Received ratings:', ratings);
     const prompt = this.buildPrompt(profile, ratings);
+    console.log('[IdeaGenerator] Generated prompt includes ratings section:', prompt.includes('USER PREFERENCES FROM SAMPLE IDEAS'));
 
     try {
       const completion = await openai.chat.completions.create({
@@ -92,6 +94,7 @@ CRITICAL: Projects must be:
 
     let ratingsSection = '';
     if (ratings && Object.keys(ratings).length > 0) {
+      console.log('[IdeaGenerator] Building ratings section with:', ratings);
       ratingsSection = `\n\nUSER PREFERENCES FROM SAMPLE IDEAS (1-10 scale):
 The student rated their interest in sample project ideas:
 ${Object.entries(ratings).map(([index, rating]) =>

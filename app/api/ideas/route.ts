@@ -31,6 +31,7 @@ export async function POST(req: Request) {
   try {
     const user = await requireAuth();
     const body = await req.json().catch(() => ({})); // Get ratings if provided
+    console.log('[API] Received ratings:', body.ratings);
 
     // Get user profile
     const profile = await db.userProfile.findUnique({
