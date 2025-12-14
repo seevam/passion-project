@@ -52,6 +52,31 @@ enum NotificationType {
   ACHIEVEMENT_UNLOCKED
   WEEKLY_SUMMARY
   PROJECT_UPDATE
+  COLLABORATION_REQUEST
+  COLLABORATION_ACCEPTED
+  COLLABORATION_REJECTED
+  TEAM_MEMBER_JOINED
+  TASK_ASSIGNED
+}
+
+enum TeamSize {
+  SOLO
+  DUO
+  SMALL_TEAM     // 3-4 people
+  LARGE_TEAM     // 5+ people
+}
+
+enum CollaborationRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum ProjectMemberRole {
+  OWNER
+  CO_LEAD
+  MEMBER
 }
 
 // ============================================================================
@@ -85,6 +110,9 @@ model User {
   achievements    Achievement[]
   notifications   Notification[]
   conversationHistory ConversationMessage[]
+  projectMemberships  ProjectMember[]
+  collaborationRequests CollaborationRequest[]
+  assignedTasks   Task[]  @relation("AssignedTasks")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -234,11 +262,21 @@ model Project {
   portfolioUrl       String?  @unique
   showcaseInGallery  Boolean  @default(false)
 
+  // Team & Collaboration
+  idealTeamSize      TeamSize @default(SOLO)
+  openForCollaboration Boolean @default(false)
+  maxTeamSize        Int      @default(1)  // Max number of team members
+  currentTeamSize    Int      @default(1)  // Current number of team members
+  skillsNeeded       String[] @default([]) // Skills looking for in collaborators
+  collaborationDesc  String?  @db.Text     // Description for potential collaborators
+
   // Relations
   milestones  Milestone[]
   tasks       Task[]
   checkIns    ProjectCheckIn[]
   documents   ProjectDocument[]
+  members     ProjectMember[]
+  collaborationRequests CollaborationRequest[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -246,6 +284,7 @@ model Project {
   @@index([userId])
   @@index([status])
   @@index([showcaseInGallery])
+  @@index([openForCollaboration])
 }
 
 model ProjectIdea {
@@ -316,6 +355,11 @@ model Task {
   description   String?  @db.Text
   estimatedHours Int?
 
+  // Assignment
+  assignedToId  String?  // FK to User
+  assignedTo    User?    @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
+  assignedAt    DateTime?
+
   priority      String   @default("medium") // "low", "medium", "high"
   completed     Boolean  @default(false)
   completedAt   DateTime?
@@ -326,6 +370,7 @@ model Task {
   @@index([projectId])
   @@index([completed])
   @@index([milestoneId])
+  @@index([assignedToId])
 }
 
 model ProjectCheckIn {
@@ -374,6 +419,58 @@ model ProjectDocument {
 
   @@index([projectId])
   @@index([type])
+}
+
+// ============================================================================
+// TEAM COLLABORATION
+// ============================================================================
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role      ProjectMemberRole @default(MEMBER)
+
+  // Contribution tracking
+  tasksCompleted Int @default(0)
+  hoursContributed Int @default(0)
+
+  joinedAt  DateTime @default(now())
+  leftAt    DateTime?
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+}
+
+model CollaborationRequest {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status    CollaborationRequestStatus @default(PENDING)
+
+  // Request details
+  message   String?  @db.Text  // Why they want to join
+  skills    String[] @default([]) // Skills they can contribute
+
+  // Response
+  responseMessage String? @db.Text // Owner's response
+  respondedAt     DateTime?
+  respondedBy     String? // userId of who responded
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@index([status])
 }
 
 // ============================================================================

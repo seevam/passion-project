@@ -75,6 +75,18 @@ export async function POST(req: Request) {
       }
     }
 
+    // Calculate max team size based on ideal team size if not provided
+    let maxTeamSize = validated.maxTeamSize;
+    if (maxTeamSize === 1 && validated.idealTeamSize !== 'SOLO') {
+      const teamSizeMap = {
+        SOLO: 1,
+        DUO: 2,
+        SMALL_TEAM: 4,
+        LARGE_TEAM: 8,
+      };
+      maxTeamSize = teamSizeMap[validated.idealTeamSize];
+    }
+
     // Create project
     const project = await db.project.create({
       data: {
@@ -86,6 +98,13 @@ export async function POST(req: Request) {
         ideaSourceId: validated.ideaSourceId || null,
         feasibilityScore: ideaData?.feasibilityScore || null,
         matchingPercent: ideaData?.matchingPercent || null,
+        // Team & Collaboration
+        idealTeamSize: validated.idealTeamSize,
+        openForCollaboration: validated.openForCollaboration,
+        maxTeamSize,
+        currentTeamSize: 1, // Creator is the first member
+        skillsNeeded: validated.skillsNeeded,
+        collaborationDesc: validated.collaborationDesc,
       },
       include: {
         milestones: true,
